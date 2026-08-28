@@ -5,13 +5,12 @@ import {
   YAxis,
   CartesianGrid,
   Tooltip,
-  Legend,
-  ResponsiveContainer
+  ResponsiveContainer,
+  Cell
 } from "recharts";
 import { dummyEmployees } from "../../data/dummyEmployees";
 
 export function PlacementChart() {
-  // Process dummy data to get active employees placement per region
   const placementData = dummyEmployees.reduce((acc, emp) => {
     if (emp.status === "Eksis") {
       const region = emp.region_terakhir;
@@ -24,31 +23,39 @@ export function PlacementChart() {
   }, {});
 
   const data = Object.values(placementData);
+  const colors = ['#2c8f42', '#0a4239', '#5fd278']; // Theme colors for bars
 
   return (
-    <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-      <h3 className="text-lg font-bold text-gray-800 mb-4">Sebaran Staf Eksis (Region)</h3>
-      <div className="h-80 w-full">
+    <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col">
+      <div className="mb-6">
+        <h3 className="text-lg font-bold text-gray-800">Placement Distribution</h3>
+        <p className="text-xs text-gray-400 mt-1">View active staff placement per region</p>
+      </div>
+      
+      <div className="flex-1 min-h-[300px] w-full">
         {data.length > 0 ? (
           <ResponsiveContainer width="100%" height="100%">
             <BarChart
               data={data}
-              margin={{ top: 20, right: 30, left: 0, bottom: 5 }}
+              margin={{ top: 20, right: 10, left: -20, bottom: 5 }}
             >
-              <CartesianGrid strokeDasharray="3 3" vertical={false} />
-              <XAxis dataKey="name" />
-              <YAxis />
+              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
+              <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill: '#9ca3af', fontSize: 12}} dy={10} />
+              <YAxis axisLine={false} tickLine={false} tick={{fill: '#9ca3af', fontSize: 12}} dx={-10} />
               <Tooltip 
-                cursor={{ fill: '#f5f7fa' }}
+                cursor={{ fill: 'transparent' }}
                 contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }}
               />
-              <Legend />
-              <Bar dataKey="Eksis" fill="#2c8f42" radius={[4, 4, 0, 0]} />
+              <Bar dataKey="Eksis" radius={[10, 10, 0, 0]} barSize={40}>
+                {data.map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={colors[index % colors.length]} />
+                ))}
+              </Bar>
             </BarChart>
           </ResponsiveContainer>
         ) : (
           <div className="flex h-full items-center justify-center text-gray-400">
-            Belum ada data penempatan
+            No placement data
           </div>
         )}
       </div>
