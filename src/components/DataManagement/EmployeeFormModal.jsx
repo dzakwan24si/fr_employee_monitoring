@@ -60,7 +60,15 @@ export function EmployeeFormModal({ isOpen, onClose, onSubmit, initialData }) {
     e.preventDefault();
     setIsSubmitting(true);
     try {
-      await onSubmit(formData);
+      // Bersihkan SEMUA string kosong ("") menjadi null agar PostgreSQL tidak error pada kolom date/numeric
+      const sanitizedData = { ...formData };
+      Object.keys(sanitizedData).forEach(key => {
+        if (sanitizedData[key] === "") {
+          sanitizedData[key] = null;
+        }
+      });
+
+      await onSubmit(sanitizedData);
       onClose();
     } catch (error) {
       console.error("Error submitting form:", error);
