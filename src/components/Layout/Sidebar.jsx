@@ -4,33 +4,32 @@ import { LayoutDashboard, Users, UserX, UserMinus, LogOut, Settings, HelpCircle 
 export function Sidebar() {
   const mainNavItems = [
     { name: "Dashboard", path: "/", icon: LayoutDashboard, badge: null },
-    { name: "Staf Eksis", path: "/eksis", icon: Users, badge: "20" },
+    { name: "Staf Eksis", path: "/eksis", icon: Users, badge: null },
     { name: "Staf Terminate", path: "/terminate", icon: UserX, badge: null },
     { name: "Staf Culled", path: "/culled", icon: UserMinus, badge: null },
   ];
 
   return (
-    <aside className="w-64 bg-white border-r border-gray-100 flex flex-col h-full shrink-0">
+    <aside className="flex flex-col h-full w-full">
       <nav className="flex-1 px-4 py-6 overflow-y-auto">
         <div className="mb-6">
-          <p className="px-4 text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">
+          <p className="px-4 text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-3">
             Menu
           </p>
-          <ul className="space-y-1">
+          <ul className="space-y-1.5">
             {mainNavItems.map((item) => (
               <li key={item.path}>
                 <NavLink
                   to={item.path}
                   className={({ isActive }) =>
-                    `flex items-center justify-between px-4 py-2.5 rounded-xl transition-all font-medium ${
-                      isActive
-                        ? "bg-[#2c8f42] text-white shadow-sm"
-                        : "text-gray-500 hover:bg-gray-50 hover:text-gray-900"
+                    `flex items-center justify-between px-4 py-3 rounded-2xl transition-all font-medium text-sm ${isActive
+                      ? "bg-[#2c8f42] text-white shadow-md shadow-[#2c8f42]/20"
+                      : "text-gray-500 hover:bg-gray-50 hover:text-gray-900"
                     }`
                   }
                 >
                   <div className="flex items-center gap-3">
-                    <item.icon size={20} strokeWidth={2} />
+                    <item.icon size={18} strokeWidth={2.5} />
                     <span>{item.name}</span>
                   </div>
                   {item.badge && (
@@ -43,21 +42,21 @@ export function Sidebar() {
             ))}
           </ul>
         </div>
-        
+
         <div className="mb-6">
-          <p className="px-4 text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">
+          <p className="px-4 text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-3">
             General
           </p>
-          <ul className="space-y-1">
+          <ul className="space-y-1.5">
             <li>
-              <button className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-gray-500 hover:bg-gray-50 hover:text-gray-900 transition-all font-medium">
-                <Settings size={20} strokeWidth={2} />
+              <button className="w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-gray-500 hover:bg-gray-50 hover:text-gray-900 transition-all font-medium text-sm">
+                <Settings size={18} strokeWidth={2.5} />
                 <span>Settings</span>
               </button>
             </li>
             <li>
-              <button className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-gray-500 hover:bg-gray-50 hover:text-gray-900 transition-all font-medium">
-                <HelpCircle size={20} strokeWidth={2} />
+              <button className="w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-gray-500 hover:bg-gray-50 hover:text-gray-900 transition-all font-medium text-sm">
+                <HelpCircle size={18} strokeWidth={2.5} />
                 <span>Help Desk</span>
               </button>
             </li>
@@ -65,9 +64,9 @@ export function Sidebar() {
         </div>
       </nav>
 
-      <div className="p-4 border-t border-gray-100">
-        <button className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-red-600 hover:bg-red-50 transition-all font-medium">
-          <LogOut size={20} strokeWidth={2} />
+      <div className="p-4 border-t border-gray-50">
+        <button className="w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-red-500 hover:bg-red-50 transition-all font-medium text-sm">
+          <LogOut size={18} strokeWidth={2.5} />
           <span>Log out</span>
         </button>
       </div>

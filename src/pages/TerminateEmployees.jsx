@@ -1,50 +1,60 @@
 import { useState } from "react";
-import { DataTable } from "../components/EmployeeTable/DataTable";
-import { EmployeeFormModal } from "../components/EmployeeForm/EmployeeFormModal";
-import { dummyEmployees } from "../data/dummyEmployees";
+import { EmployeeTable } from "../components/DataManagement/EmployeeTable";
+import { EmployeeFormModal } from "../components/DataManagement/EmployeeFormModal";
+import { useEmployees } from "../hooks/useEmployees";
 
 export default function TerminateEmployees() {
-  const [data, setData] = useState(dummyEmployees);
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const { data, loading, error, addEmployee, updateEmployee, deleteEmployee } = useEmployees(["Terminate", "Resign"]);
+  const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingEmployee, setEditingEmployee] = useState(null);
 
   const handleAdd = () => {
     setEditingEmployee(null);
-    setIsModalOpen(true);
+    setIsFormOpen(true);
   };
 
   const handleEdit = (employee) => {
     setEditingEmployee(employee);
-    setIsModalOpen(true);
+    setIsFormOpen(true);
   };
 
-  const handleSubmit = (payload) => {
-    if (editingEmployee) {
-      setData((prev) => prev.map((item) => (item.id === payload.id ? payload : item)));
-    } else {
-      setData((prev) => [payload, ...prev]);
+  const handleDelete = async (id) => {
+    try {
+      await deleteEmployee(id);
+    } catch (err) {
+      alert("Gagal menghapus data: " + err.message);
     }
   };
 
-  return (
-    <div>
-      <div className="mb-8">
-        <h2 className="text-3xl font-bold text-gray-800">Data Staf Terminate</h2>
-        <p className="text-gray-500 mt-2">Daftar staf yang telah mengundurkan diri (Resign/Terminate).</p>
-      </div>
+  const handleSubmitForm = async (formData) => {
+    if (editingEmployee) {
+      await updateEmployee(editingEmployee.ID_MONITORING, formData);
+    } else {
+      await addEmployee({ ...formData, STATUS: "Terminate" });
+    }
+  };
 
-      <DataTable 
-        data={data} 
-        statusFilter="Terminate" 
-        onAdd={handleAdd} 
-        onEdit={handleEdit} 
+  if (error) {
+    return <div className="p-4 bg-red-50 text-red-600 rounded-xl">Error loading data: {error}</div>;
+  }
+
+  return (
+    <div className="h-full">
+      <EmployeeTable 
+        data={data}
+        loading={loading}
+        title="Data Karyawan Terminate"
+        description="Daftar karyawan FR Academy yang telah berhenti secara reguler."
+        onAdd={handleAdd}
+        onEdit={handleEdit}
+        onDelete={handleDelete}
       />
 
       <EmployeeFormModal 
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
+        isOpen={isFormOpen}
+        onClose={() => setIsFormOpen(false)}
+        onSubmit={handleSubmitForm}
         initialData={editingEmployee}
-        onSubmit={handleSubmit}
       />
     </div>
   );
