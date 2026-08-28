@@ -1,47 +1,75 @@
-import { Search, Bell, HelpCircle, ChevronDown } from "lucide-react";
+import { useState, useEffect } from "react";
+import { ChevronDown, Clock, MapPin } from "lucide-react";
+import { useLocation } from "react-router-dom";
 
 export function Topbar() {
+  const [time, setTime] = useState(new Date());
+  const location = useLocation();
+
+  useEffect(() => {
+    const timer = setInterval(() => setTime(new Date()), 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  const formatTime = (date) => {
+    return date.toLocaleTimeString("id-ID", {
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit"
+    });
+  };
+
+  const formatDate = (date) => {
+    return date.toLocaleDateString("id-ID", {
+      weekday: "long",
+      year: "numeric",
+      month: "long",
+      day: "numeric"
+    });
+  };
+
+  const getBreadcrumb = (pathname) => {
+    switch (pathname) {
+      case "/": return "Dashboard Utama";
+      case "/eksis": return "Data Karyawan / Staf Eksis";
+      case "/terminate": return "Data Karyawan / Staf Terminate";
+      case "/culled": return "Data Karyawan / Staf Culled";
+      case "/settings": return "Pengaturan Sistem";
+      default: return "Halaman FR Academy";
+    }
+  };
+
   return (
     <header className="h-16 bg-white rounded-[2rem] shadow-sm flex items-center justify-between px-6 shrink-0">
-      {/* Logo Area */}
-      <div className="flex items-center">
-        <img src="/logofr.png" alt="FR Logo" className="h-8 w-auto mr-3" />
-        <span className="font-bold text-gray-800 text-lg tracking-tight">FR Academy</span>
+      {/* Left Side: Logo & Breadcrumbs */}
+      <div className="flex items-center gap-6">
+        <div className="flex items-center">
+          <img src="/logofr.png" alt="FR Logo" className="h-8 w-auto mr-3" />
+          <span className="font-bold text-gray-800 text-lg tracking-tight">FR Academy</span>
+        </div>
+        
+        <div className="hidden md:flex items-center gap-2 px-4 py-1.5 bg-gray-50 rounded-lg border border-gray-100">
+          <MapPin size={14} className="text-[#2c8f42]" />
+          <span className="text-xs font-bold text-gray-500 uppercase tracking-wide">
+            {getBreadcrumb(location.pathname)}
+          </span>
+        </div>
       </div>
 
-      {/* Right Side (Search + Actions) */}
+      {/* Right Side: Clock & Profile */}
       <div className="flex flex-1 items-center justify-end gap-6">
         
-        {/* Search Area */}
-        <div className="hidden md:block w-full max-w-md">
-          <div className="relative">
-            <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-              <Search className="h-4 w-4 text-gray-500" />
-            </div>
-            <input
-              type="text"
-              placeholder="Search employee"
-              className="w-full bg-[#f8f9fa] border-none rounded-full py-2.5 pl-10 pr-12 text-sm text-gray-700 focus:ring-2 focus:ring-[#2c8f42] outline-none transition-all"
-            />
-            <div className="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none">
-              <span className="text-[10px] text-gray-500 font-medium">
-                Ctrl K
-              </span>
-            </div>
+        {/* Live Clock */}
+        <div className="hidden md:flex flex-col items-end justify-center px-4 border-r border-gray-100">
+          <div className="flex items-center gap-1.5 text-gray-800 font-bold text-sm">
+            <Clock size={14} className="text-[#2c8f42]" />
+            {formatTime(time)}
+          </div>
+          <div className="text-[10px] text-gray-500 font-medium">
+            {formatDate(time)}
           </div>
         </div>
 
-        {/* Icons */}
-        <div className="flex items-center gap-4">
-          <button className="text-gray-600 hover:text-gray-900 transition-colors relative">
-            <Bell size={20} strokeWidth={2} />
-            <span className="absolute -top-0.5 -right-0.5 h-2 w-2 bg-red-500 rounded-full border border-white"></span>
-          </button>
-          <button className="text-gray-600 hover:text-gray-900 transition-colors">
-            <HelpCircle size={20} strokeWidth={2} />
-          </button>
-        </div>
-        
         {/* Profile */}
         <div className="flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity">
           <div className="h-9 w-9 bg-[#eaf4ec] text-[#2c8f42] rounded-full flex items-center justify-center font-bold text-sm">

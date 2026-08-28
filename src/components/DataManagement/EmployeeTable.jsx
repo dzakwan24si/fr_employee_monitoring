@@ -13,14 +13,17 @@ export function EmployeeTable({
 }) {
   const [selectedEmployee, setSelectedEmployee] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
+  const [regionFilter, setRegionFilter] = useState("Semua");
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
 
   // Filter Data
-  const filteredData = data.filter(emp => 
-    (emp.NAMA?.toLowerCase() || "").includes(searchTerm.toLowerCase()) || 
-    (emp.NIK?.toLowerCase() || "").includes(searchTerm.toLowerCase())
-  );
+  const filteredData = data.filter(emp => {
+    const matchesSearch = (emp.NAMA?.toLowerCase() || "").includes(searchTerm.toLowerCase()) || 
+                          (emp.NIK?.toLowerCase() || "").includes(searchTerm.toLowerCase());
+    const matchesRegion = regionFilter === "Semua" ? true : (emp["REGION TERAKHIR"] || "") === regionFilter;
+    return matchesSearch && matchesRegion;
+  });
 
   // Pagination Logic
   const totalPages = Math.ceil(filteredData.length / rowsPerPage);
@@ -70,6 +73,23 @@ export function EmployeeTable({
               }}
               className="pl-9 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#2c8f42] outline-none w-full md:w-56 transition-all"
             />
+          </div>
+
+          <div className="relative">
+            <Filter className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 h-4 w-4 pointer-events-none" />
+            <select
+              value={regionFilter}
+              onChange={(e) => {
+                setRegionFilter(e.target.value);
+                setCurrentPage(1);
+              }}
+              className="pl-9 pr-8 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#2c8f42] outline-none appearance-none transition-all cursor-pointer"
+            >
+              <option value="Semua">Semua Region</option>
+              <option value="Riau">Riau</option>
+              <option value="Kalbar">Kalbar</option>
+              <option value="Kubar">Kubar</option>
+            </select>
           </div>
           
           <button 

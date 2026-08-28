@@ -2,30 +2,30 @@ import { useState, useEffect } from "react";
 import { X, Save, Loader2 } from "lucide-react";
 
 const initialFormState = {
-  "NIK": "", 
-  "NAMA": "", 
-  "JOIN DATE": "", 
-  "JABATAN": "", 
-  "LEVEL JABATAN": "", 
-  "ANGKATAN FR ACADEMY": "", 
-  "KATEGORI": "", 
-  "ALUMNI": "", 
-  "SUKU": "", 
-  "AGAMA": "", 
-  "LOKASI TERAKHIR": "", 
-  "REGION TERAKHIR": "", 
-  "STATUS": "Eksis", 
-  "DATE TERMINATE": "", 
-  "BULAN TERMINATE": "", 
-  "TAHUN TERMINATE": "", 
-  "LAMA BEKERJA (BULAN)": "", 
-  "LAMA BEKERJA (TAHUN)": "", 
-  "LAMA BEKERJA": "", 
-  "Alasan Resign": "", 
-  "Detail": "", 
-  "LOKASI AWAL PENEMPATAN": "", 
-  "REGION AWAL PENEMPATAN": "", 
-  "GM": "", 
+  "NIK": "",
+  "NAMA": "",
+  "JOIN DATE": "",
+  "JABATAN": "",
+  "LEVEL JABATAN": "",
+  "ANGKATAN FR ACADEMY": "",
+  "KATEGORI": "",
+  "ALUMNI": "",
+  "SUKU": "",
+  "AGAMA": "",
+  "LOKASI TERAKHIR": "",
+  "REGION TERAKHIR": "",
+  "STATUS": "Eksis",
+  "DATE TERMINATE": "",
+  "BULAN TERMINATE": "",
+  "TAHUN TERMINATE": "",
+  "LAMA BEKERJA (BULAN)": "",
+  "LAMA BEKERJA (TAHUN)": "",
+  "LAMA BEKERJA": "",
+  "Alasan Resign": "",
+  "Detail": "",
+  "LOKASI AWAL PENEMPATAN": "",
+  "REGION AWAL PENEMPATAN": "",
+  "GM": "",
   "MK": ""
 };
 
@@ -46,7 +46,7 @@ export function EmployeeFormModal({ isOpen, onClose, onSubmit, initialData }) {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    
+
     // For numbers, parse them correctly or allow strings
     let finalValue = value;
     if (name === "TAHUN TERMINATE" || name === "LAMA BEKERJA (BULAN)" || name === "LAMA BEKERJA (TAHUN)") {
@@ -86,10 +86,30 @@ export function EmployeeFormModal({ isOpen, onClose, onSubmit, initialData }) {
     </div>
   );
 
+  const renderSelect = (label, name, options, required = false) => (
+    <div>
+      <label className="block text-xs font-semibold text-gray-600 mb-1">
+        {label} {required && <span className="text-red-500">*</span>}
+      </label>
+      <select
+        name={name}
+        value={formData[name] || ""}
+        onChange={handleChange}
+        required={required}
+        className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[#2c8f42] outline-none transition-all"
+      >
+        <option value="">-- Pilih {label} --</option>
+        {options.map((opt) => (
+          <option key={opt} value={opt}>{opt}</option>
+        ))}
+      </select>
+    </div>
+  );
+
   return (
     <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4 animate-in fade-in duration-200">
       <div className="bg-white rounded-[2rem] shadow-xl w-full max-w-5xl max-h-[90vh] flex flex-col overflow-hidden animate-in slide-in-from-bottom-4 duration-300">
-        
+
         {/* Header */}
         <div className="px-8 py-6 border-b border-gray-100 flex justify-between items-center bg-gray-50/50 shrink-0">
           <div>
@@ -98,7 +118,7 @@ export function EmployeeFormModal({ isOpen, onClose, onSubmit, initialData }) {
             </h2>
             <p className="text-sm text-gray-500 font-medium">Lengkapi formulir di bawah ini</p>
           </div>
-          <button 
+          <button
             onClick={onClose}
             className="p-2 hover:bg-gray-200 rounded-full text-gray-500 transition-colors"
           >
@@ -109,7 +129,7 @@ export function EmployeeFormModal({ isOpen, onClose, onSubmit, initialData }) {
         {/* Form Content */}
         <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-8">
           <div className="space-y-8">
-            
+
             {/* Bagian 1: Data Utama */}
             <section>
               <h3 className="text-sm font-bold text-[#2c8f42] uppercase tracking-wider border-b border-gray-100 pb-2 mb-4">
@@ -119,8 +139,8 @@ export function EmployeeFormModal({ isOpen, onClose, onSubmit, initialData }) {
                 {renderInput("NIK", "NIK", "text", true)}
                 {renderInput("Nama Lengkap", "NAMA", "text", true)}
                 {renderInput("Join Date", "JOIN DATE", "date")}
-                {renderInput("Jabatan", "JABATAN")}
-                {renderInput("Level Jabatan", "LEVEL JABATAN")}
+                {renderSelect("Jabatan", "JABATAN", ["Asisten Kebun", "Asisten Bibitan", "Asisten GIS", "Asisten Land Clearing", "Asisten Tanam dan Sisip", "Asisten Tissue Culture", "Askep Kebun", "L&D Officer", "Manager Kebun", "Reseacrh Officer", "Lainnya"])}
+                {renderSelect("Level Jabatan", "LEVEL JABATAN", ["Askep", "Asisten", "GM", "Manager", "PC", "Lainnya"])}
                 <div>
                   <label className="block text-xs font-semibold text-gray-600 mb-1">Status Karyawan <span className="text-red-500">*</span></label>
                   <select name="STATUS" value={formData["STATUS"] || ""} onChange={handleChange} required className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[#2c8f42] outline-none">
@@ -139,10 +159,10 @@ export function EmployeeFormModal({ isOpen, onClose, onSubmit, initialData }) {
                 2. Data Pribadi
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                {renderInput("Suku", "SUKU")}
-                {renderInput("Agama", "AGAMA")}
+                {renderSelect("Suku", "SUKU", ["Jawa", "Batak", "Minang", "Sunda", "Melayu", "Dayak", "Bugis", "Lainnya"])}
+                {renderSelect("Agama", "AGAMA", ["Islam", "Kristen", "Katolik", "Hindu", "Buddha", "Konghucu", "Lainnya"])}
                 {renderInput("Alumni (Universitas)", "ALUMNI")}
-                {renderInput("Kategori", "KATEGORI")}
+                {renderSelect("Kategori", "KATEGORI", ["Alumni", "Non-Alumni"])}
               </div>
             </section>
 
@@ -154,9 +174,9 @@ export function EmployeeFormModal({ isOpen, onClose, onSubmit, initialData }) {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {renderInput("Angkatan FR Academy", "ANGKATAN FR ACADEMY")}
                 {renderInput("Lokasi Awal", "LOKASI AWAL PENEMPATAN")}
-                {renderInput("Region Awal", "REGION AWAL PENEMPATAN")}
+                {renderSelect("Region Awal", "REGION AWAL PENEMPATAN", ["Riau", "Kalbar", "Kubar"])}
                 {renderInput("Lokasi Terakhir", "LOKASI TERAKHIR")}
-                {renderInput("Region Terakhir", "REGION TERAKHIR")}
+                {renderSelect("Region Terakhir", "REGION TERAKHIR", ["Riau", "Kalbar", "Kubar"])}
                 {renderInput("Lama Bekerja", "LAMA BEKERJA")}
                 {renderInput("Lama Bekerja (Bulan)", "LAMA BEKERJA (BULAN)", "number")}
                 {renderInput("Lama Bekerja (Tahun)", "LAMA BEKERJA (TAHUN)", "number")}
