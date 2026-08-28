@@ -204,7 +204,26 @@ export function EmployeeFormModal({ isOpen, onClose, onSubmit, initialData }) {
                   {renderInput("Bulan Terminate", "BULAN TERMINATE")}
                   {renderInput("Tahun Terminate", "TAHUN TERMINATE", "number")}
                   <div className="md:col-span-3">
-                    {renderInput("Alasan Resign", "Alasan Resign")}
+                    <label className="block text-xs font-semibold text-gray-600 mb-1">
+                      Alasan Resign
+                    </label>
+                    <input
+                      list="alasan-resign-options"
+                      name="Alasan Resign"
+                      value={formData["Alasan Resign"] === null ? "" : formData["Alasan Resign"] || ""}
+                      onChange={handleChange}
+                      placeholder="Pilih dari daftar atau ketik alasan baru..."
+                      className="w-full bg-white border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-red-400 focus:border-transparent outline-none transition-all"
+                    />
+                    <datalist id="alasan-resign-options">
+                      <option value="Pensiun" />
+                      <option value="Pindah ke Perusahaan Lain" />
+                      <option value="Under Perform" />
+                      <option value="Tidak Cocok dengan Budaya Kerja" />
+                      <option value="Pulang Kampung" />
+                      <option value="Case" />
+                      <option value="Tidak Lulus Talent" />
+                    </datalist>
                   </div>
                   <div className="md:col-span-3">
                     <label className="block text-xs font-semibold text-gray-600 mb-1">Detail Tambahan</label>
