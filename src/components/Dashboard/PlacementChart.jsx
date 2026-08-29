@@ -8,12 +8,11 @@ import {
   ResponsiveContainer,
   Cell
 } from "recharts";
-import { dummyEmployees } from "../../data/dummyEmployees";
 
-export function PlacementChart() {
-  const placementData = dummyEmployees.reduce((acc, emp) => {
-    if (emp.status === "Eksis") {
-      const region = emp.region_terakhir;
+export function PlacementChart({ data = [] }) {
+  const placementData = data.reduce((acc, emp) => {
+    if (emp.STATUS === "Eksis" || emp.STATUS === "Aktif") {
+      const region = emp["REGION TERAKHIR"] || "Tidak diketahui";
       if (!acc[region]) {
         acc[region] = { name: region, Eksis: 0 };
       }
@@ -22,21 +21,21 @@ export function PlacementChart() {
     return acc;
   }, {});
 
-  const data = Object.values(placementData);
+  const chartData = Object.values(placementData);
   const colors = ['#2c8f42', '#0a4239', '#5fd278']; // Theme colors for bars
 
   return (
     <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col">
       <div className="mb-6">
         <h3 className="text-lg font-bold text-gray-800">Placement Distribution</h3>
-        <p className="text-xs text-gray-400 mt-1">View active staff placement per region</p>
+        <p className="text-xs text-gray-400 mt-1">Sebaran karyawan aktif berdasarkan region</p>
       </div>
       
       <div className="flex-1 min-h-[300px] w-full">
-        {data.length > 0 ? (
+        {chartData.length > 0 ? (
           <ResponsiveContainer width="100%" height="100%">
             <BarChart
-              data={data}
+              data={chartData}
               margin={{ top: 20, right: 10, left: -20, bottom: 5 }}
             >
               <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
@@ -46,8 +45,8 @@ export function PlacementChart() {
                 cursor={{ fill: 'transparent' }}
                 contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }}
               />
-              <Bar dataKey="Eksis" radius={[10, 10, 0, 0]} barSize={40}>
-                {data.map((entry, index) => (
+              <Bar dataKey="Eksis" name="Karyawan aktif" radius={[10, 10, 0, 0]} barSize={40}>
+                {chartData.map((entry, index) => (
                   <Cell key={`cell-${index}`} fill={colors[index % colors.length]} />
                 ))}
               </Bar>

@@ -1,29 +1,53 @@
-export function AnalisaTab({ data = [] }) {
-  
-  // 1. Hitung Status
+import { PlacementChart } from "./PlacementChart";
+import { TurnoverChart } from "./TurnoverChart";
+
+export function AnalisaTab({ data = [], summaryData = [] }) {
+  const toNumber = (value) => {
+    const parsed = Number(value ?? 0);
+    return Number.isFinite(parsed) ? parsed : 0;
+  };
+
   const activeStaff = data.filter(emp => emp.STATUS === 'Eksis' || emp.STATUS === 'Aktif');
   const resignStaff = data.filter(emp => emp.STATUS === 'Terminate' || emp.STATUS === 'Resign' || emp.STATUS === 'Culled');
 
-  // 2. Hitung Kategori (Alumni vs Non-Alumni / Rekrut)
+  const hasSummary = Array.isArray(summaryData) && summaryData.length > 0;
+  const summaryActiveTotal = hasSummary
+    ? summaryData.reduce((sum, row) => sum + toNumber(row.lulus_calculated ?? row.lulus ?? row.Lulus ?? row["Lulus"]), 0)
+    : activeStaff.length;
+
+  const summaryResignTotal = hasSummary
+    ? summaryData.reduce((sum, row) => {
+        const culled = toNumber(row.culled_calculated ?? row.culled ?? row.Culled ?? row["Culled"]);
+        const tidakLulus = toNumber(row.tidak_lulus_calculated ?? row.tidak_lulus ?? row["Tidak Lulus"] ?? row.tidakLulus);
+        return sum + culled + tidakLulus;
+      }, 0)
+    : resignStaff.length;
+
   const lulusanAktif = activeStaff.filter(emp => emp.KATEGORI?.toLowerCase().includes('alumni'));
   const rekrutAktif = activeStaff.filter(emp => !emp.KATEGORI?.toLowerCase().includes('alumni'));
-  
+
   const lulusanResign = resignStaff.filter(emp => emp.KATEGORI?.toLowerCase().includes('alumni'));
   const rekrutResign = resignStaff.filter(emp => !emp.KATEGORI?.toLowerCase().includes('alumni'));
 
-  const pctLulusanAktif = activeStaff.length ? Math.round((lulusanAktif.length / activeStaff.length) * 100) : 0;
-  const pctRekrutAktif = activeStaff.length ? Math.round((rekrutAktif.length / activeStaff.length) * 100) : 0;
-  
-  const pctLulusanResign = resignStaff.length ? Math.round((lulusanResign.length / resignStaff.length) * 100) : 0;
-  const pctRekrutResign = resignStaff.length ? Math.round((rekrutResign.length / resignStaff.length) * 100) : 0;
+  const lulusanAktifValue = hasSummary ? summaryActiveTotal : lulusanAktif.length;
+  const rekrutAktifValue = hasSummary ? Math.max(summaryActiveTotal - lulusanAktifValue, 0) : rekrutAktif.length;
+
+  const lulusanResignValue = hasSummary ? summaryResignTotal : lulusanResign.length;
+  const rekrutResignValue = hasSummary ? Math.max(summaryResignTotal - lulusanResignValue, 0) : rekrutResign.length;
+
+  const pctLulusanAktif = summaryActiveTotal ? Math.round((lulusanAktifValue / summaryActiveTotal) * 100) : 0;
+  const pctRekrutAktif = summaryActiveTotal ? Math.round((rekrutAktifValue / summaryActiveTotal) * 100) : 0;
+
+  const pctLulusanResign = summaryResignTotal ? Math.round((lulusanResignValue / summaryResignTotal) * 100) : 0;
+  const pctRekrutResign = summaryResignTotal ? Math.round((rekrutResignValue / summaryResignTotal) * 100) : 0;
 
   const summaryCards = [
-    { title: "Jumlah Asst All Region (Aktif)", value: activeStaff.length.toString(), type: "single" },
-    { title: "Lulusan All Region (Aktif)", value: lulusanAktif.length.toString(), percentage: `${pctLulusanAktif}%`, type: "split" },
-    { title: "Asisten Rekrut All Region (Aktif)", value: rekrutAktif.length.toString(), percentage: `${pctRekrutAktif}%`, type: "split" },
-    { title: "Asisten All Region (Resign)", value: resignStaff.length.toString(), type: "single", color: "text-red-500" },
-    { title: "Lulusan All Region (Resign)", value: lulusanResign.length.toString(), percentage: `${pctLulusanResign}%`, type: "split", color: "text-red-500" },
-    { title: "Asisten Rekrut All Region (Resign)", value: rekrutResign.length.toString(), percentage: `${pctRekrutResign}%`, type: "split", color: "text-red-500" },
+    { title: "Jumlah Asst All Region (Aktif)", value: summaryActiveTotal.toString(), type: "single" },
+    { title: "Lulusan All Region (Aktif)", value: lulusanAktifValue.toString(), percentage: `${pctLulusanAktif}%`, type: "split" },
+    { title: "Asisten Rekrut All Region (Aktif)", value: rekrutAktifValue.toString(), percentage: `${pctRekrutAktif}%`, type: "split" },
+    { title: "Asisten All Region (Resign)", value: summaryResignTotal.toString(), type: "single", color: "text-red-500" },
+    { title: "Lulusan All Region (Resign)", value: lulusanResignValue.toString(), percentage: `${pctLulusanResign}%`, type: "split", color: "text-red-500" },
+    { title: "Asisten Rekrut All Region (Resign)", value: rekrutResignValue.toString(), percentage: `${pctRekrutResign}%`, type: "split", color: "text-red-500" },
   ];
 
   // Helper function for grouping by Region
@@ -43,44 +67,9 @@ export function AnalisaTab({ data = [] }) {
   const aktifStats = getRegionStats(activeStaff);
   const resignStats = getRegionStats(resignStaff);
 
-  // Group by Angkatan for Training Table
-  const trainingGroups = {};
-  data.forEach(emp => {
-    const angkatan = emp["ANGKATAN FR ACADEMY"] || "Tidak Diketahui";
-    if (!trainingGroups[angkatan]) {
-      trainingGroups[angkatan] = { lulus: 0, tidakLulus: 0, resignClass: 0, resignOjt: 0, total: 0 };
-    }
-    
-    trainingGroups[angkatan].total++;
-    
-    if (emp.STATUS === 'Eksis' || emp.STATUS === 'Aktif') {
-      trainingGroups[angkatan].lulus++;
-    } else if (emp.STATUS === 'Terminate' || emp.STATUS === 'Resign' || emp.STATUS === 'Culled') {
-      // Dummy logic for OJT vs Class based on Lama Bekerja
-      if ((emp["LAMA BEKERJA (BULAN)"] || 0) < 3) {
-        trainingGroups[angkatan].resignClass++;
-      } else {
-        trainingGroups[angkatan].resignOjt++;
-      }
-    }
-  });
-
-  const trainingData = Object.keys(trainingGroups).map(key => {
-    const d = trainingGroups[key];
-    const pct = d.total > 0 ? Math.round((d.lulus / d.total) * 100) : 0;
-    return {
-      angkatan: key,
-      inClass: d.resignClass,
-      ojt: d.resignOjt,
-      tidakLulus: d.tidakLulus,
-      lulus: d.lulus,
-      pct: `${pct}%`
-    };
-  }).sort((a, b) => a.angkatan.localeCompare(b.angkatan));
-
   return (
     <div className="flex flex-col gap-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-      
+
       {/* Summary Cards Row */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
         {summaryCards.map((card, idx) => (
@@ -103,44 +92,15 @@ export function AnalisaTab({ data = [] }) {
         ))}
       </div>
 
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+        <PlacementChart data={data} />
+        <TurnoverChart data={data} />
+      </div>
+
       {/* Tables Section */}
       <div className="bg-white rounded-3xl p-6 shadow-sm border border-gray-100 mt-4 overflow-x-auto">
         <div className="min-w-[1200px] flex gap-6">
           
-          {/* Table Training */}
-          <div className="flex-1">
-            <h3 className="text-sm font-bold text-white bg-[#1e612d] py-2 px-4 rounded-t-xl mb-0 border-b border-gray-300">Training</h3>
-            <table className="w-full text-center border-collapse text-xs">
-              <thead>
-                <tr className="bg-[#2c8f42] text-white">
-                  <th className="border border-gray-300 p-2" rowSpan={2}>Angkatan</th>
-                  <th className="border border-gray-300 p-2" colSpan={2}>Jumlah Culling / Resign</th>
-                  <th className="border border-gray-300 p-2" rowSpan={2}>Tidak Lulus</th>
-                  <th className="border border-gray-300 p-2" rowSpan={2}>Lulus</th>
-                  <th className="border border-gray-300 p-2" rowSpan={2}>%</th>
-                </tr>
-                <tr className="bg-[#2c8f42] text-white">
-                  <th className="border border-gray-300 p-2">In Class</th>
-                  <th className="border border-gray-300 p-2">OJT</th>
-                </tr>
-              </thead>
-              <tbody className="text-gray-700 bg-gray-50/50">
-                {trainingData.length > 0 ? trainingData.map((row, i) => (
-                  <tr key={i} className="hover:bg-gray-100 transition-colors">
-                    <td className="border border-gray-300 p-2 font-bold text-left">{row.angkatan}</td>
-                    <td className="border border-gray-300 p-2">{row.inClass}</td>
-                    <td className="border border-gray-300 p-2">{row.ojt}</td>
-                    <td className="border border-gray-300 p-2">{row.tidakLulus}</td>
-                    <td className="border border-gray-300 p-2 font-medium">{row.lulus}</td>
-                    <td className="border border-gray-300 p-2">{row.pct}</td>
-                  </tr>
-                )) : (
-                  <tr><td colSpan={6} className="p-4 text-gray-400">Tidak ada data pelatihan</td></tr>
-                )}
-              </tbody>
-            </table>
-          </div>
-
           {/* Table Aktif */}
           <div className="flex-[0.7]">
             <h3 className="text-sm font-bold text-white bg-[#0e4475] py-2 px-4 rounded-t-xl mb-0 border-b border-gray-300">Aktif</h3>
@@ -153,7 +113,7 @@ export function AnalisaTab({ data = [] }) {
                   <th className="border border-gray-300 p-2" rowSpan={2}>Corp</th>
                   <th className="border border-gray-300 p-2" rowSpan={2}>Total</th>
                 </tr>
-                <tr className="bg-[#1464a8] text-white invisible"><th colSpan={5} className="p-2">Spacer</th></tr>
+
               </thead>
               <tbody className="text-gray-700 bg-gray-50/50">
                 <tr className="hover:bg-gray-100 transition-colors">
@@ -179,7 +139,7 @@ export function AnalisaTab({ data = [] }) {
                   <th className="border border-gray-300 p-2" rowSpan={2}>Corp</th>
                   <th className="border border-gray-300 p-2" rowSpan={2}>Total</th>
                 </tr>
-                <tr className="bg-[#d93838] text-white invisible"><th colSpan={5} className="p-2">Spacer</th></tr>
+              
               </thead>
               <tbody className="text-gray-700 bg-gray-50/50">
                 <tr className="hover:bg-gray-100 transition-colors">

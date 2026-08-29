@@ -1,11 +1,11 @@
 import { Users, UserX, UserMinus, ArrowUpRight } from "lucide-react";
-import { dummyEmployees } from "../../data/dummyEmployees";
 
-export function SummaryCards() {
-  const eksisCount = dummyEmployees.filter((e) => e.status === "Eksis").length;
-  const terminateCount = dummyEmployees.filter((e) => e.status === "Terminate").length;
-  const culledCount = dummyEmployees.filter((e) => e.status === "Culled").length;
-  const totalCount = dummyEmployees.length;
+export function SummaryCards({ data = [] }) {
+  const eksisCount = data.filter((employee) => employee.STATUS === "Eksis" || employee.STATUS === "Aktif").length;
+  const terminateCount = data.filter((employee) => employee.STATUS === "Terminate" || employee.STATUS === "Resign").length;
+  const culledCount = data.filter((employee) => employee.STATUS === "Culled").length;
+  const totalCount = data.length;
+  const percentage = (count) => totalCount ? `${Math.round((count / totalCount) * 100)}%` : "0%";
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
@@ -20,10 +20,10 @@ export function SummaryCards() {
         <div className="flex items-center gap-3">
           <h3 className="text-4xl font-bold text-gray-800">{totalCount}</h3>
           <span className="flex items-center gap-1 bg-[#eaf4ec] text-[#2c8f42] text-xs font-bold px-2 py-0.5 rounded-full">
-            <ArrowUpRight size={12} /> 12%
+            <ArrowUpRight size={12} /> 100%
           </span>
         </div>
-        <p className="text-xs text-gray-400 mt-3">Last month: {totalCount - 1}</p>
+        <p className="text-xs text-gray-400 mt-3">Seluruh data yang tersimpan</p>
       </div>
 
       {/* Eksis */}
@@ -37,10 +37,10 @@ export function SummaryCards() {
         <div className="flex items-center gap-3">
           <h3 className="text-4xl font-bold text-gray-800">{eksisCount}</h3>
           <span className="flex items-center gap-1 bg-[#eaf4ec] text-[#2c8f42] text-xs font-bold px-2 py-0.5 rounded-full">
-            <ArrowUpRight size={12} /> 4.9%
+            <ArrowUpRight size={12} /> {percentage(eksisCount)}
           </span>
         </div>
-        <p className="text-xs text-gray-400 mt-3">Last month: {eksisCount}</p>
+        <p className="text-xs text-gray-400 mt-3">Proporsi dari seluruh karyawan</p>
       </div>
 
       {/* Terminate */}
@@ -54,10 +54,10 @@ export function SummaryCards() {
         <div className="flex items-center gap-3">
           <h3 className="text-4xl font-bold text-gray-800">{terminateCount}</h3>
           <span className="flex items-center gap-1 bg-red-50 text-red-600 text-xs font-bold px-2 py-0.5 rounded-full">
-            <ArrowUpRight size={12} className="rotate-90" /> 2.1%
+            <ArrowUpRight size={12} className="rotate-90" /> {percentage(terminateCount)}
           </span>
         </div>
-        <p className="text-xs text-gray-400 mt-3">Last month: {terminateCount - 1}</p>
+        <p className="text-xs text-gray-400 mt-3">Proporsi dari seluruh karyawan</p>
       </div>
 
       {/* Culled */}
@@ -71,10 +71,10 @@ export function SummaryCards() {
         <div className="flex items-center gap-3">
           <h3 className="text-4xl font-bold text-gray-800">{culledCount}</h3>
           <span className="flex items-center gap-1 bg-orange-50 text-orange-600 text-xs font-bold px-2 py-0.5 rounded-full">
-            <ArrowUpRight size={12} className="rotate-90" /> 1.5%
+            <ArrowUpRight size={12} className="rotate-90" /> {percentage(culledCount)}
           </span>
         </div>
-        <p className="text-xs text-gray-400 mt-3">Last month: {culledCount}</p>
+        <p className="text-xs text-gray-400 mt-3">Proporsi dari seluruh karyawan</p>
       </div>
     </div>
   );
