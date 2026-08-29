@@ -30,7 +30,7 @@ export default function EksisEmployees() {
     if (editingEmployee) {
       await updateEmployee(editingEmployee.ID_MONITORING, formData);
     } else {
-      await addEmployee({ ...formData, STATUS: "Eksis" });
+      await addEmployee({ ...formData, STATUS: "Aktif" });
     }
   };
 
@@ -43,7 +43,7 @@ export default function EksisEmployees() {
       <EmployeeTable 
         data={data}
         loading={loading}
-        title="Data Karyawan Eksis"
+        title="Data Karyawan Aktif"
         description="Daftar karyawan FR Academy yang masih aktif bekerja."
         onAdd={handleAdd}
         onEdit={handleEdit}

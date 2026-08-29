@@ -4,8 +4,8 @@ import { LayoutDashboard, Users, UserX, UserMinus, GraduationCap } from "lucide-
 export function Sidebar() {
   const mainNavItems = [
     { name: "Dashboard", path: "/", icon: LayoutDashboard, badge: null },
-    { name: "Staf Eksis", path: "/eksis", icon: Users, badge: null },
-    { name: "Staf Terminate", path: "/terminate", icon: UserX, badge: null },
+    { name: "Staf Aktif", path: "/eksis", icon: Users, badge: null },
+    { name: "Staf Resign", path: "/terminate", icon: UserX, badge: null },
     { name: "Staf Culled", path: "/culled", icon: UserMinus, badge: null },
   ];
 

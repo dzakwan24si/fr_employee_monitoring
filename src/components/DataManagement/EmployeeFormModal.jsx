@@ -14,7 +14,7 @@ const initialFormState = {
   "AGAMA": "",
   "LOKASI TERAKHIR": "",
   "REGION TERAKHIR": "",
-  "STATUS": "Eksis",
+  "STATUS": "Aktif",
   "DATE TERMINATE": "",
   "BULAN TERMINATE": "",
   "TAHUN TERMINATE": "",
@@ -152,9 +152,7 @@ export function EmployeeFormModal({ isOpen, onClose, onSubmit, initialData }) {
                 <div>
                   <label className="block text-xs font-semibold text-gray-600 mb-1">Status Karyawan <span className="text-red-500">*</span></label>
                   <select name="STATUS" value={formData["STATUS"] || ""} onChange={handleChange} required className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[#2c8f42] outline-none">
-                    <option value="Eksis">Eksis</option>
-                    <option value="Terminate">Terminate</option>
-                    <option value="Culled">Culled</option>
+                    <option value="Aktif">Aktif</option>
                     <option value="Resign">Resign</option>
                   </select>
                 </div>
@@ -194,10 +192,10 @@ export function EmployeeFormModal({ isOpen, onClose, onSubmit, initialData }) {
             </section>
 
             {/* Bagian 4: Terminasi */}
-            {(formData["STATUS"] === "Terminate" || formData["STATUS"] === "Culled" || formData["STATUS"] === "Resign") && (
+            {formData["STATUS"] === "Resign" && (
               <section className="bg-red-50/50 p-6 rounded-2xl border border-red-100">
                 <h3 className="text-sm font-bold text-red-600 uppercase tracking-wider border-b border-red-200 pb-2 mb-4">
-                  4. Data Terminasi / Culled
+                  4. Data Resign
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   {renderInput("Tanggal Terminate", "DATE TERMINATE", "date")}

@@ -30,7 +30,7 @@ export default function TerminateEmployees() {
     if (editingEmployee) {
       await updateEmployee(editingEmployee.ID_MONITORING, formData);
     } else {
-      await addEmployee({ ...formData, STATUS: "Terminate" });
+      await addEmployee({ ...formData, STATUS: "Resign" });
     }
   };
 
@@ -43,8 +43,8 @@ export default function TerminateEmployees() {
       <EmployeeTable 
         data={data}
         loading={loading}
-        title="Data Karyawan Terminate"
-        description="Daftar karyawan FR Academy yang telah berhenti secara reguler."
+        title="Data Karyawan Resign"
+        description="Daftar karyawan FR Academy yang telah berhenti atau resign."
         onAdd={handleAdd}
         onEdit={handleEdit}
         onDelete={handleDelete}
