@@ -1,5 +1,5 @@
 import { NavLink } from "react-router-dom";
-import { LayoutDashboard, Users, UserX, UserMinus, LogOut, Settings, HelpCircle } from "lucide-react";
+import { LayoutDashboard, Users, UserX, UserMinus, GraduationCap } from "lucide-react";
 
 export function Sidebar() {
   const mainNavItems = [
@@ -10,11 +10,11 @@ export function Sidebar() {
   ];
 
   return (
-    <aside className="flex flex-col h-full w-full">
+    <aside className="flex flex-col h-full w-full bg-white">
       <nav className="flex-1 px-4 py-6 overflow-y-auto">
-        <div className="mb-6">
+        <div className="mb-8">
           <p className="px-4 text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-3">
-            Menu
+            Menu Utama
           </p>
           <ul className="space-y-1.5">
             {mainNavItems.map((item) => (
@@ -45,30 +45,33 @@ export function Sidebar() {
 
         <div className="mb-6">
           <p className="px-4 text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-3">
-            General
+            Master Data
           </p>
           <ul className="space-y-1.5">
             <li>
-              <button className="w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-gray-500 hover:bg-gray-50 hover:text-gray-900 transition-all font-medium text-sm">
-                <Settings size={18} strokeWidth={2.5} />
-                <span>Settings</span>
-              </button>
-            </li>
-            <li>
-              <button className="w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-gray-500 hover:bg-gray-50 hover:text-gray-900 transition-all font-medium text-sm">
-                <HelpCircle size={18} strokeWidth={2.5} />
-                <span>Help Desk</span>
-              </button>
+              <NavLink
+                to="/angkatan"
+                className={({ isActive }) =>
+                  `flex items-center gap-3 px-4 py-3 rounded-2xl transition-all font-medium text-sm ${isActive
+                    ? "bg-[#2c8f42] text-white shadow-md shadow-[#2c8f42]/20"
+                    : "text-gray-500 hover:bg-gray-50 hover:text-gray-900"
+                  }`
+                }
+              >
+                <GraduationCap size={18} strokeWidth={2.5} />
+                <span>Data Angkatan</span>
+              </NavLink>
             </li>
           </ul>
         </div>
       </nav>
 
-      <div className="p-4 border-t border-gray-50">
-        <button className="w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-red-500 hover:bg-red-50 transition-all font-medium text-sm">
-          <LogOut size={18} strokeWidth={2.5} />
-          <span>Log out</span>
-        </button>
+      {/* Bisa ditambahkan tombol Export / Settings nanti di sini jika fitur sudah siap */}
+      <div className="p-6">
+        <div className="bg-[#eaf4ec] p-4 rounded-2xl border border-[#cbe5d2]">
+          <h4 className="text-[#2c8f42] font-bold text-xs mb-1">FR Academy System</h4>
+          <p className="text-gray-500 text-[10px]">Versi 1.0 - Monitoring Karyawan</p>
+        </div>
       </div>
     </aside>
   );

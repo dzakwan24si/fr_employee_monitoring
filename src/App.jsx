@@ -4,6 +4,7 @@ import Dashboard from "./pages/Dashboard";
 import EksisEmployees from "./pages/EksisEmployees";
 import TerminateEmployees from "./pages/TerminateEmployees";
 import CulledEmployees from "./pages/CulledEmployees";
+import AngkatanData from "./pages/AngkatanData";
 
 function App() {
   return (
@@ -14,6 +15,7 @@ function App() {
           <Route path="eksis" element={<EksisEmployees />} />
           <Route path="terminate" element={<TerminateEmployees />} />
           <Route path="culled" element={<CulledEmployees />} />
+          <Route path="angkatan" element={<AngkatanData />} />
         </Route>
       </Routes>
     </Router>

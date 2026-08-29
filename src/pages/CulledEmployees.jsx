@@ -1,12 +1,24 @@
-import { useState } from "react";
-import { EmployeeTable } from "../components/DataManagement/EmployeeTable";
-import { EmployeeFormModal } from "../components/DataManagement/EmployeeFormModal";
-import { useEmployees } from "../hooks/useEmployees";
+import { useState, useEffect } from "react";
+import { CulledTable } from "../components/DataManagement/CulledTable";
+import { CulledFormModal } from "../components/DataManagement/CulledFormModal";
+import { AngkatanFormModal } from "../components/DataManagement/AngkatanFormModal";
+import { useCulled } from "../hooks/useCulled";
+import { useAngkatan } from "../hooks/useAngkatan";
 
 export default function CulledEmployees() {
-  const { data, loading, error, addEmployee, updateEmployee, deleteEmployee } = useEmployees("Culled");
+  const { data, angkatanList, loading, error, addCulled, updateCulled, deleteCulled, refetch: refetchCulled } = useCulled();
+  const { addAngkatan } = useAngkatan();
+  
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingEmployee, setEditingEmployee] = useState(null);
+  
+  const [isAngkatanModalOpen, setIsAngkatanModalOpen] = useState(false);
+
+  useEffect(() => {
+    const handleOpenAngkatanModal = () => setIsAngkatanModalOpen(true);
+    window.addEventListener('openAngkatanModal', handleOpenAngkatanModal);
+    return () => window.removeEventListener('openAngkatanModal', handleOpenAngkatanModal);
+  }, []);
 
   const handleAdd = () => {
     setEditingEmployee(null);
@@ -20,17 +32,34 @@ export default function CulledEmployees() {
 
   const handleDelete = async (id) => {
     try {
-      await deleteEmployee(id);
+      await deleteCulled(id);
     } catch (err) {
       alert("Gagal menghapus data: " + err.message);
     }
   };
 
   const handleSubmitForm = async (formData) => {
+    const payload = { 
+      nama: formData.nama,
+      id_angkatan: formData.id_angkatan,
+      kategori_status: formData.kategori_status,
+      alasan: formData.alasan
+    };
+
     if (editingEmployee) {
-      await updateEmployee(editingEmployee.ID_MONITORING, formData);
+      await updateCulled(editingEmployee.id_culled, payload);
     } else {
-      await addEmployee({ ...formData, STATUS: "Culled" });
+      await addCulled(payload);
+    }
+  };
+
+  const handleAddAngkatan = async (formData) => {
+    try {
+      await addAngkatan(formData);
+      // Refetch culled data so the angkatanList gets updated in the dropdown
+      await refetchCulled();
+    } catch (err) {
+      throw err;
     }
   };
 
@@ -40,21 +69,29 @@ export default function CulledEmployees() {
 
   return (
     <div className="h-full">
-      <EmployeeTable 
+      <CulledTable 
         data={data}
         loading={loading}
-        title="Data Karyawan Culled"
-        description="Daftar karyawan FR Academy yang diberhentikan secara tidak hormat atau pelanggaran."
+        title="Data Staf Culled"
+        description="Daftar karyawan FR Academy yang diberhentikan atau resign di luar prosedur reguler."
         onAdd={handleAdd}
         onEdit={handleEdit}
         onDelete={handleDelete}
       />
 
-      <EmployeeFormModal 
+      <CulledFormModal 
         isOpen={isFormOpen}
         onClose={() => setIsFormOpen(false)}
         onSubmit={handleSubmitForm}
         initialData={editingEmployee}
+        angkatanList={angkatanList}
+      />
+
+      {/* Quick Add Angkatan Modal */}
+      <AngkatanFormModal 
+        isOpen={isAngkatanModalOpen}
+        onClose={() => setIsAngkatanModalOpen(false)}
+        onSubmit={handleAddAngkatan}
       />
     </div>
   );
