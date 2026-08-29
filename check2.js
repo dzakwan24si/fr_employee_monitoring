@@ -14,13 +14,19 @@ async function check() {
   const activeStaff = data.filter(emp => emp.STATUS === 'Eksis' || emp.STATUS === 'Aktif');
   const resignStaff = data.filter(emp => emp.STATUS === 'Terminate' || emp.STATUS === 'Resign' || emp.STATUS === 'Culled');
   
-  const unique = [...new Set(data.map(d => d.KATEGORI))];
-  const uniqueActive = [...new Set(activeStaff.map(d => d.KATEGORI))];
+  const isAlumni = (k) => k?.trim().toLowerCase() === 'alumni';
+  const isNonAlumni = (k) => {
+    const val = k?.trim().toLowerCase();
+    return val === 'non-alumni' || val === 'non alumni';
+  };
+
+  console.log("Total Active:", activeStaff.length);
+  console.log("Active Alumni:", activeStaff.filter(e => isAlumni(e.KATEGORI)).length);
+  console.log("Active Non-Alumni:", activeStaff.filter(e => isNonAlumni(e.KATEGORI)).length);
   
-  console.log("All Unique KATEGORI values:", unique);
-  console.log("Active Unique KATEGORI values:", uniqueActive);
-  console.log("Active 'Alumni' count:", activeStaff.filter(e => e.KATEGORI?.trim().toLowerCase() === 'alumni').length);
-  console.log("Active 'Non-Alumni' count:", activeStaff.filter(e => e.KATEGORI?.trim().toLowerCase() === 'non-alumni').length);
+  console.log("Total Resign:", resignStaff.length);
+  console.log("Resign Alumni:", resignStaff.filter(e => isAlumni(e.KATEGORI)).length);
+  console.log("Resign Non-Alumni:", resignStaff.filter(e => isNonAlumni(e.KATEGORI)).length);
 }
 
 check();

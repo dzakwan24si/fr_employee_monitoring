@@ -10,42 +10,39 @@ export function AnalisaTab({ data = [], summaryData = [] }) {
   const activeStaff = data.filter(emp => emp.STATUS === 'Eksis' || emp.STATUS === 'Aktif');
   const resignStaff = data.filter(emp => emp.STATUS === 'Terminate' || emp.STATUS === 'Resign' || emp.STATUS === 'Culled');
 
-  const hasSummary = Array.isArray(summaryData) && summaryData.length > 0;
-  const summaryActiveTotal = hasSummary
-    ? summaryData.reduce((sum, row) => sum + toNumber(row.lulus_calculated ?? row.lulus ?? row.Lulus ?? row["Lulus"]), 0)
-    : activeStaff.length;
+  const isAlumni = (kategori) => kategori?.trim().toLowerCase() === 'alumni';
+  const isNonAlumni = (kategori) => {
+    const val = kategori?.trim().toLowerCase();
+    return val === 'non-alumni' || val === 'non alumni';
+  };
 
-  const summaryResignTotal = hasSummary
-    ? summaryData.reduce((sum, row) => {
-        const culled = toNumber(row.culled_calculated ?? row.culled ?? row.Culled ?? row["Culled"]);
-        const tidakLulus = toNumber(row.tidak_lulus_calculated ?? row.tidak_lulus ?? row["Tidak Lulus"] ?? row.tidakLulus);
-        return sum + culled + tidakLulus;
-      }, 0)
-    : resignStaff.length;
+  const lulusanAktif = activeStaff.filter(emp => isAlumni(emp.KATEGORI));
+  const rekrutAktif = activeStaff.filter(emp => isNonAlumni(emp.KATEGORI));
 
-  const lulusanAktif = activeStaff.filter(emp => emp.KATEGORI?.toLowerCase().includes('alumni'));
-  const rekrutAktif = activeStaff.filter(emp => !emp.KATEGORI?.toLowerCase().includes('alumni'));
+  const lulusanResign = resignStaff.filter(emp => isAlumni(emp.KATEGORI));
+  const rekrutResign = resignStaff.filter(emp => isNonAlumni(emp.KATEGORI));
 
-  const lulusanResign = resignStaff.filter(emp => emp.KATEGORI?.toLowerCase().includes('alumni'));
-  const rekrutResign = resignStaff.filter(emp => !emp.KATEGORI?.toLowerCase().includes('alumni'));
+  // The true active and resign counts MUST come directly from the employees table.
+  // Using `summaryData` (from Angkatan) is incorrect here because "Lulus" from Angkatan includes people who later resigned.
+  const lulusanAktifValue = lulusanAktif.length;
+  const rekrutAktifValue = rekrutAktif.length;
+  const totalAktifValue = lulusanAktifValue + rekrutAktifValue; // Should equal activeStaff.length (354)
 
-  const lulusanAktifValue = hasSummary ? summaryActiveTotal : lulusanAktif.length;
-  const rekrutAktifValue = hasSummary ? Math.max(summaryActiveTotal - lulusanAktifValue, 0) : rekrutAktif.length;
+  const lulusanResignValue = lulusanResign.length;
+  const rekrutResignValue = rekrutResign.length;
+  const totalResignValue = lulusanResignValue + rekrutResignValue; // Should equal resignStaff.length
 
-  const lulusanResignValue = hasSummary ? summaryResignTotal : lulusanResign.length;
-  const rekrutResignValue = hasSummary ? Math.max(summaryResignTotal - lulusanResignValue, 0) : rekrutResign.length;
+  const pctLulusanAktif = totalAktifValue ? Math.round((lulusanAktifValue / totalAktifValue) * 100) : 0;
+  const pctRekrutAktif = totalAktifValue ? Math.round((rekrutAktifValue / totalAktifValue) * 100) : 0;
 
-  const pctLulusanAktif = summaryActiveTotal ? Math.round((lulusanAktifValue / summaryActiveTotal) * 100) : 0;
-  const pctRekrutAktif = summaryActiveTotal ? Math.round((rekrutAktifValue / summaryActiveTotal) * 100) : 0;
-
-  const pctLulusanResign = summaryResignTotal ? Math.round((lulusanResignValue / summaryResignTotal) * 100) : 0;
-  const pctRekrutResign = summaryResignTotal ? Math.round((rekrutResignValue / summaryResignTotal) * 100) : 0;
+  const pctLulusanResign = totalResignValue ? Math.round((lulusanResignValue / totalResignValue) * 100) : 0;
+  const pctRekrutResign = totalResignValue ? Math.round((rekrutResignValue / totalResignValue) * 100) : 0;
 
   const summaryCards = [
-    { title: "Jumlah Asst All Region (Aktif)", value: summaryActiveTotal.toString(), type: "single" },
+    { title: "Jumlah Asst All Region (Aktif)", value: totalAktifValue.toString(), type: "single" },
     { title: "Lulusan All Region (Aktif)", value: lulusanAktifValue.toString(), percentage: `${pctLulusanAktif}%`, type: "split" },
     { title: "Asisten Rekrut All Region (Aktif)", value: rekrutAktifValue.toString(), percentage: `${pctRekrutAktif}%`, type: "split" },
-    { title: "Asisten All Region (Resign)", value: summaryResignTotal.toString(), type: "single", color: "text-red-500" },
+    { title: "Asisten All Region (Resign)", value: totalResignValue.toString(), type: "single", color: "text-red-500" },
     { title: "Lulusan All Region (Resign)", value: lulusanResignValue.toString(), percentage: `${pctLulusanResign}%`, type: "split", color: "text-red-500" },
     { title: "Asisten Rekrut All Region (Resign)", value: rekrutResignValue.toString(), percentage: `${pctRekrutResign}%`, type: "split", color: "text-red-500" },
   ];

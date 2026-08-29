@@ -72,8 +72,8 @@ export default function CulledEmployees() {
       <CulledTable 
         data={data}
         loading={loading}
-        title="Data Staf Culled"
-        description="Daftar karyawan FR Academy yang diberhentikan atau resign di luar prosedur reguler."
+        title="Data Peserta Culled"
+        description="Daftar peserta pelatihan FR Academy yang dikeluarkan atau tidak lulus."
         onAdd={handleAdd}
         onEdit={handleEdit}
         onDelete={handleDelete}

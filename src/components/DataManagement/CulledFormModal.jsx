@@ -59,9 +59,9 @@ export function CulledFormModal({ isOpen, onClose, onSubmit, initialData, angkat
         <div className="px-8 py-6 border-b border-gray-100 flex justify-between items-center bg-gray-50/50 shrink-0">
           <div>
             <h2 className="text-xl font-bold text-gray-800">
-              {initialData ? "Edit Data Culled" : "Tambah Data Culled"}
+              {initialData ? "Edit Data Peserta Culled" : "Tambah Data Peserta Culled"}
             </h2>
-            <p className="text-sm text-gray-500 font-medium">Lengkapi informasi staf yang dikeluarkan</p>
+            <p className="text-sm text-gray-500 font-medium">Lengkapi informasi peserta pelatihan yang dikeluarkan</p>
           </div>
           <button 
             type="button"
