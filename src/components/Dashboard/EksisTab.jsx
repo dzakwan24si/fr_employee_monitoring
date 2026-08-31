@@ -1,11 +1,21 @@
+import { useState } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LabelList } from 'recharts';
+import { ChevronDown } from 'lucide-react';
 
 export function EksisTab({ data = [] }) {
+  const [filterAngkatan1T, setFilterAngkatan1T] = useState('All');
+  const [filterAngkatan3T, setFilterAngkatan3T] = useState('All');
+  const [filterAngkatan5T, setFilterAngkatan5T] = useState('All');
   
   // Filter ONLY Lulusan (Alumni)
   const isAlumni = (kategori) => kategori?.trim().toLowerCase() === 'alumni';
   const allLulusan = data.filter(emp => isAlumni(emp.KATEGORI));
   const activeLulusan = allLulusan.filter(emp => emp.STATUS === 'Eksis' || emp.STATUS === 'Aktif');
+
+  // Extract all available Angkatan and exclude "FAT II 2026"
+  const globalAngkatanOptions = Array.from(new Set(
+    activeLulusan.map(emp => (emp["ANGKATAN FR ACADEMY"] || emp.ANGKATAN || "").trim()).filter(Boolean)
+  )).filter(a => a !== "FAT II 2026").sort();
 
   // Robust Region Normalizer
   const normalizeRegion = (value = "") => {
@@ -53,10 +63,24 @@ export function EksisTab({ data = [] }) {
 
   const currentYear = new Date().getFullYear();
   
-  // Cumulative filters
-  const active1Tahun = activeLulusan.filter(emp => getYear(emp) >= currentYear);
-  const active3Tahun = activeLulusan.filter(emp => getYear(emp) >= currentYear - 2);
-  const active5Tahun = activeLulusan.filter(emp => getYear(emp) >= currentYear - 5);
+  // Cumulative filters with specific Angkatan filters applied
+  const active1TahunRaw = activeLulusan.filter(emp => getYear(emp) >= currentYear);
+  const active1Tahun = active1TahunRaw.filter(emp => {
+    if (filterAngkatan1T === 'All') return true;
+    return (emp["ANGKATAN FR ACADEMY"] || emp.ANGKATAN || "").trim() === filterAngkatan1T;
+  });
+
+  const active3TahunRaw = activeLulusan.filter(emp => getYear(emp) >= currentYear - 2);
+  const active3Tahun = active3TahunRaw.filter(emp => {
+    if (filterAngkatan3T === 'All') return true;
+    return (emp["ANGKATAN FR ACADEMY"] || emp.ANGKATAN || "").trim() === filterAngkatan3T;
+  });
+
+  const active5TahunRaw = activeLulusan.filter(emp => getYear(emp) >= currentYear - 5);
+  const active5Tahun = active5TahunRaw.filter(emp => {
+    if (filterAngkatan5T === 'All') return true;
+    return (emp["ANGKATAN FR ACADEMY"] || emp.ANGKATAN || "").trim() === filterAngkatan5T;
+  });
 
   const regionOrder = { "riau": 1, "kalbar": 2, "kubar": 3, "corp": 4 };
 
@@ -157,9 +181,12 @@ export function EksisTab({ data = [] }) {
     );
   };
 
-  const renderChart = (title, chartData, isGrouped = false) => (
-    <div className="bg-[#f0f9f3] p-6 rounded-3xl border border-[#2c8f42]/20 shadow-sm flex flex-col items-center">
-      <h3 className="text-xs font-extrabold text-[#1a5b28] uppercase tracking-wider mb-6 text-center">{title}</h3>
+  const renderChart = (title, chartData, isGrouped = false, filterComponent = null) => (
+    <div className="bg-[#f0f9f3] p-6 rounded-3xl border border-[#2c8f42]/20 shadow-sm flex flex-col items-center relative">
+      <div className="w-full flex justify-between items-center mb-6">
+        <h3 className="text-xs font-extrabold text-[#1a5b28] uppercase tracking-wider text-left flex-1">{title}</h3>
+        {filterComponent}
+      </div>
       <div className="w-full h-[250px]">
         {chartData.length > 0 ? (
           <ResponsiveContainer width="100%" height="100%">
@@ -200,13 +227,70 @@ export function EksisTab({ data = [] }) {
 
       {/* Middle Row: Lulusan Eksis 1 Tahun & 3 Tahun */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {renderChart(`Lokasi Lulusan Eksis 1 Tahun (${currentYear})`, dataLulusan1Tahun, true)}
-        {renderChart(`Lokasi Lulusan Eksis 3 Tahun (${currentYear - 2}-${currentYear})`, dataLulusan3Tahun, true)}
+        {renderChart(
+          `Lokasi Lulusan Eksis 1 Tahun (${currentYear})`, 
+          dataLulusan1Tahun, 
+          true,
+          (
+            <div className="relative z-10 min-w-[150px]">
+              <select 
+                className="w-full appearance-none flex items-center gap-2 text-xs text-[#1a5b28] font-bold border border-[#2c8f42]/40 pl-3 pr-8 py-1.5 rounded-full hover:bg-white focus:outline-none focus:ring-2 focus:ring-[#2c8f42] bg-[#eaf4ec] cursor-pointer shadow-sm"
+                value={filterAngkatan1T}
+                onChange={(e) => setFilterAngkatan1T(e.target.value)}
+              >
+                <option value="All">Semua Angkatan</option>
+                {globalAngkatanOptions.map(angkatan => (
+                  <option key={angkatan} value={angkatan}>{angkatan}</option>
+                ))}
+              </select>
+              <ChevronDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-[#1a5b28] pointer-events-none" />
+            </div>
+          )
+        )}
+        {renderChart(
+          `Lokasi Lulusan Eksis 3 Tahun (${currentYear - 2}-${currentYear})`, 
+          dataLulusan3Tahun, 
+          true,
+          (
+            <div className="relative z-10 min-w-[150px]">
+              <select 
+                className="w-full appearance-none flex items-center gap-2 text-xs text-[#1a5b28] font-bold border border-[#2c8f42]/40 pl-3 pr-8 py-1.5 rounded-full hover:bg-white focus:outline-none focus:ring-2 focus:ring-[#2c8f42] bg-[#eaf4ec] cursor-pointer shadow-sm"
+                value={filterAngkatan3T}
+                onChange={(e) => setFilterAngkatan3T(e.target.value)}
+              >
+                <option value="All">Semua Angkatan</option>
+                {globalAngkatanOptions.map(angkatan => (
+                  <option key={angkatan} value={angkatan}>{angkatan}</option>
+                ))}
+              </select>
+              <ChevronDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-[#1a5b28] pointer-events-none" />
+            </div>
+          )
+        )}
       </div>
 
       {/* Bottom Row: Lulusan Eksis 5 Tahun */}
       <div className="grid grid-cols-1 gap-6">
-        {renderChart(`Lokasi Lulusan Eksis 5 Tahun (${currentYear - 5}-${currentYear})`, dataLulusan5Tahun, true)}
+        {renderChart(
+          `Lokasi Lulusan Eksis 5 Tahun (${currentYear - 5}-${currentYear})`, 
+          dataLulusan5Tahun, 
+          true,
+          (
+            <div className="relative z-10 min-w-[150px]">
+              <select 
+                className="w-full appearance-none flex items-center gap-2 text-xs text-[#1a5b28] font-bold border border-[#2c8f42]/40 pl-3 pr-8 py-1.5 rounded-full hover:bg-white focus:outline-none focus:ring-2 focus:ring-[#2c8f42] bg-[#eaf4ec] cursor-pointer shadow-sm"
+                value={filterAngkatan5T}
+                onChange={(e) => setFilterAngkatan5T(e.target.value)}
+              >
+                <option value="All">Semua Angkatan</option>
+                {globalAngkatanOptions.map(angkatan => (
+                  <option key={angkatan} value={angkatan}>{angkatan}</option>
+                ))}
+              </select>
+              <ChevronDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-[#1a5b28] pointer-events-none" />
+            </div>
+          )
+        )}
       </div>
 
     </div>
