@@ -91,7 +91,7 @@ export function AnalisaTab({ data = [], summaryData = [] }) {
 
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
         <PlacementChart data={data} />
-        <TurnoverChart data={data} />
+        <TurnoverChart summaryData={summaryData} />
       </div>
 
       {/* Detailed Tables Section by Angkatan */}
