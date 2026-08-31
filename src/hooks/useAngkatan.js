@@ -19,7 +19,7 @@ export function useAngkatan() {
       if (angkatanError) throw angkatanError;
 
       // 2. Fetch culled data
-      const { data: culledData } = await supabase.from('culled').select('id_angkatan, kategori_status');
+      const { data: culledData } = await supabase.from('culled').select('id_angkatan, kategori_status, alasan');
 
       // 3. Aggregate Mathematically
       // Rumus User: Lulus = Jumlah Awal - (Culled + Tidak Lulus)
@@ -31,6 +31,9 @@ export function useAngkatan() {
         const totalTidakLulus = relatedCulled.filter(c => c.kategori_status === 'Tidak Lulus').length;
         const totalCulled = relatedCulled.filter(c => c.kategori_status !== 'Tidak Lulus').length; // Default to Culled if null
 
+        const resignInClass = relatedCulled.filter(c => c.kategori_status !== 'Tidak Lulus' && (c.alasan || '').toLowerCase().includes('in class')).length;
+        const resignOjt = relatedCulled.filter(c => c.kategori_status !== 'Tidak Lulus' && (c.alasan || '').toLowerCase().includes('ojt')).length;
+
         // Calculate Lulus
         const totalLulus = item['Jumlah Awal'] - totalCulled - totalTidakLulus;
 
@@ -38,7 +41,9 @@ export function useAngkatan() {
           ...item,
           lulus_calculated: totalLulus > 0 ? totalLulus : 0,
           culled_calculated: totalCulled,
-          tidak_lulus_calculated: totalTidakLulus
+          tidak_lulus_calculated: totalTidakLulus,
+          resign_in_class_calculated: resignInClass,
+          resign_ojt_calculated: resignOjt
         };
       });
 
@@ -57,22 +62,31 @@ export function useAngkatan() {
   }, []);
 
   const addAngkatan = async (newAngkatan) => {
+    let nextId = 1;
+    if (data && data.length > 0) {
+      nextId = Math.max(...data.map(item => item.id_angkatan || 0)) + 1;
+    }
+
     const { data: inserted, error } = await supabase
       .from('angkatan')
       .insert([{
+        id_angkatan: nextId,
         angkatan: newAngkatan.angkatan,
-        'Jumlah Awal': newAngkatan['Jumlah Awal']
-        // We do not save lulus because it is dynamically calculated now!
+        'Jumlah Awal': newAngkatan['Jumlah Awal'],
+        lulus: newAngkatan['Jumlah Awal'] // Satisfy NOT NULL constraint
       }])
       .select();
     
     if (error) throw error;
+    
     // Format before adding to state
     const formatted = {
       ...inserted[0],
       lulus_calculated: inserted[0]['Jumlah Awal'],
       culled_calculated: 0,
-      tidak_lulus_calculated: 0
+      tidak_lulus_calculated: 0,
+      resign_in_class_calculated: 0,
+      resign_ojt_calculated: 0
     };
     setData([formatted, ...data]);
     return formatted;
@@ -97,7 +111,9 @@ export function useAngkatan() {
           ...updated[0],
           lulus_calculated: newLulus > 0 ? newLulus : 0,
           culled_calculated: item.culled_calculated,
-          tidak_lulus_calculated: item.tidak_lulus_calculated
+          tidak_lulus_calculated: item.tidak_lulus_calculated,
+          resign_in_class_calculated: item.resign_in_class_calculated,
+          resign_ojt_calculated: item.resign_ojt_calculated
         };
       }
       return item;
@@ -106,6 +122,14 @@ export function useAngkatan() {
   };
 
   const deleteAngkatan = async (id) => {
+    // Delete related culled entries first to prevent foreign key constraint violation
+    const { error: culledError } = await supabase
+      .from('culled')
+      .delete()
+      .eq('id_angkatan', id);
+      
+    if (culledError) throw culledError;
+
     const { error } = await supabase
       .from('angkatan')
       .delete()

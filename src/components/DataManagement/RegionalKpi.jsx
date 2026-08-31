@@ -46,6 +46,15 @@ const isGraduate = (employee) => Boolean(employee.ALUMNI || employee.KATEGORI?.t
 const percentageOf = (total, value) => value > 0 ? `${Math.round((total / value) * 100)}%` : "-";
 const getProgramName = (employee) => String(employee["ANGKATAN FR ACADEMY"] || employee["ANGKATAN"] || employee.angkatan || "Tidak diketahui").trim() || "Tidak diketahui";
 
+const normalizeBatchName = (name) => {
+  if (!name) return "";
+  let n = String(name).trim();
+  if (n.match(/Field Assistant/i)) n = n.replace(/Field Assistant\s*-\s*/i, 'FAT ');
+  else if (n.match(/Estate Cadet Trainee/i)) n = n.replace(/Estate Cadet Trainee\s*-\s*/i, 'ECT ');
+  n = n.replace(/\//g, ' ');
+  return n.replace(/\s+/g, ' ').toUpperCase();
+};
+
 function TrainingKpi({ data = [], summaryData = [] }) {
   const getProgramYear = (value) => {
     const match = String(value || "").match(/(?:19|20)\d{2}/);
@@ -150,149 +159,24 @@ function TrainingKpi({ data = [], summaryData = [] }) {
   );
 }
 
-function ProgramDiagnosticsTable({ data = [] }) {
-  const isSummaryData = data.some((item) => item && ("angkatan" in item || "Angkatan" in item || "Jumlah Awal" in item || "jumlah_awal" in item || "lulus" in item));
+export function RegionalKpi({ data = [], summaryData = [] }) {
+  const validBatchNames = new Set(
+    (summaryData || [])
+      .map(row => normalizeBatchName(row.angkatan ?? row.Angkatan ?? row.program ?? ""))
+      .filter(Boolean)
+  );
 
-  if (isSummaryData) {
-    const rows = data
-      .map((row) => {
-        const program = String(row.angkatan ?? row.Angkatan ?? row.program ?? "Tidak diketahui").trim();
-        const total = Number(row["Jumlah Awal"] ?? row.jumlah_awal ?? row.total ?? row.Total ?? 0) || 0;
-        const lulus = Number(row.lulus ?? row.Lulus ?? row.lulus_akademi ?? 0) || 0;
-        const tidakLulus = Math.max(total - lulus, 0);
-
-        return {
-          program,
-          total,
-          lulus,
-          tidakLulus,
-        };
-      })
-      .filter((row) => row.program && row.program !== "Tidak diketahui")
-      .sort((a, b) => a.program.localeCompare(b.program));
-
-    return (
-      <div className="mt-6 overflow-x-auto border border-gray-200 rounded-xl">
-        <div className="bg-[#f5f7fb] px-4 py-3 border-b border-gray-200">
-          <h3 className="text-sm font-bold text-gray-800">Data per Program / Angkatan</h3>
-          <p className="text-xs text-gray-500 mt-1">Membandingkan Jumlah Awal, Lulus, dan Tidak Lulus sesuai sumber angkatan</p>
-        </div>
-        <table className="w-full min-w-[800px] border-collapse text-xs">
-          <thead>
-            <tr className="bg-[#1f3f60] text-white">
-              <th className="border border-gray-300 px-3 py-2 text-left">Program</th>
-              <th className="border border-gray-300 px-3 py-2">Jumlah Awal</th>
-              <th className="border border-gray-300 px-3 py-2">Lulus</th>
-              <th className="border border-gray-300 px-3 py-2">Tidak Lulus</th>
-            </tr>
-          </thead>
-          <tbody>
-            {rows.map((row) => (
-              <tr key={row.program} className="even:bg-gray-50 align-top">
-                <td className="border border-gray-300 px-3 py-2 font-semibold text-gray-700">{row.program}</td>
-                <td className="border border-gray-300 px-3 py-2 text-center font-bold">{row.total}</td>
-                <td className="border border-gray-300 px-3 py-2 text-center text-green-700 font-bold">{row.lulus}</td>
-                <td className="border border-gray-300 px-3 py-2 text-center text-red-600 font-bold">{row.tidakLulus}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    );
-  }
-
-  const programMap = new Map();
-
-  data.forEach((employee) => {
+  const validEmployees = data.filter((employee) => {
     const program = getProgramName(employee);
-    const current = programMap.get(program) || {
-      program,
-      total: 0,
-      active: 0,
-      resign: 0,
-      culled: 0,
-      tidakLulus: 0,
-      suspects: [],
-    };
-
-    current.total += 1;
-
-    if (isActive(employee)) current.active += 1;
-    else {
-      current.resign += 1;
-      if (String(employee.STATUS || "").trim().toLowerCase() === "culled") current.culled += 1;
-    }
-
-    if (isTidakLulus(employee)) {
-      current.tidakLulus += 1;
-      current.suspects.push({
-        name: employee.NAMA || "-",
-        reason: getAlasanValue(employee) || employee.STATUS || "-",
-      });
-    }
-
-    programMap.set(program, current);
+    return program !== "Tidak diketahui" && validBatchNames.has(normalizeBatchName(program));
   });
 
-  const rows = Array.from(programMap.values()).sort((a, b) => a.program.localeCompare(b.program));
-
-  return (
-    <div className="mt-6 overflow-x-auto border border-gray-200 rounded-xl">
-      <div className="bg-[#f5f7fb] px-4 py-3 border-b border-gray-200">
-        <h3 className="text-sm font-bold text-gray-800">Data per Program / Angkatan</h3>
-        <p className="text-xs text-gray-500 mt-1">Cek baris yang mencurigakan berdasarkan status dan alasan</p>
-      </div>
-      <table className="w-full min-w-[1100px] border-collapse text-xs">
-        <thead>
-          <tr className="bg-[#1f3f60] text-white">
-            <th className="border border-gray-300 px-3 py-2 text-left">Program</th>
-            <th className="border border-gray-300 px-3 py-2">Total</th>
-            <th className="border border-gray-300 px-3 py-2">Aktif</th>
-            <th className="border border-gray-300 px-3 py-2">Resign</th>
-            <th className="border border-gray-300 px-3 py-2">Culled</th>
-            <th className="border border-gray-300 px-3 py-2">Tidak Lulus</th>
-            <th className="border border-gray-300 px-3 py-2 text-left">Suspect</th>
-          </tr>
-        </thead>
-        <tbody>
-          {rows.map((row) => (
-            <tr key={row.program} className="even:bg-gray-50 align-top">
-              <td className="border border-gray-300 px-3 py-2 font-semibold text-gray-700">{row.program}</td>
-              <td className="border border-gray-300 px-3 py-2 text-center font-bold">{row.total}</td>
-              <td className="border border-gray-300 px-3 py-2 text-center">{row.active}</td>
-              <td className="border border-gray-300 px-3 py-2 text-center">{row.resign}</td>
-              <td className="border border-gray-300 px-3 py-2 text-center">{row.culled}</td>
-              <td className="border border-gray-300 px-3 py-2 text-center text-red-600 font-bold">{row.tidakLulus}</td>
-              <td className="border border-gray-300 px-3 py-2 max-w-[420px]">
-                {row.suspects.length ? (
-                  <div className="space-y-1">
-                    {row.suspects.slice(0, 5).map((suspect, idx) => (
-                      <div key={`${row.program}-${suspect.name}-${idx}`} className="text-gray-700 break-words">
-                        <span className="font-medium">{suspect.name}</span>
-                        <span className="text-gray-500"> — {suspect.reason}</span>
-                      </div>
-                    ))}
-                    {row.suspects.length > 5 && <div className="text-gray-500">... dan {row.suspects.length - 5} lainnya</div>}
-                  </div>
-                ) : (
-                  <span className="text-gray-400">-</span>
-                )}
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
-  );
-}
-
-export function RegionalKpi({ data = [], summaryData = [] }) {
   const stats = REGIONS.reduce((result, region) => {
     result[region] = { allocation: 0, locations: new Set(), active: 0, resigned: 0, graduates: 0 };
     return result;
   }, {});
 
-  data.forEach((employee) => {
+  validEmployees.forEach((employee) => {
     const region = normalizeRegion(employee["REGION TERAKHIR"] || employee["REGION AWAL PENEMPATAN"]);
     if (!region) return;
 
@@ -304,28 +188,35 @@ export function RegionalKpi({ data = [], summaryData = [] }) {
     if (isGraduate(employee)) regionStats.graduates += 1;
   });
 
+  const dummyAfdeling = {
+    Riau: 166,
+    Kalbar: 99,
+    Kubar: 37,
+    Corp: 0
+  };
+
   const rows = REGIONS.map((region) => {
     const regionStats = stats[region];
     const total = regionStats.active + regionStats.resigned;
     return {
       region,
-      allocation: regionStats.allocation,
-      departments: regionStats.locations.size,
+      allocation: total, // Set allocation to strictly active + resigned
+      departments: dummyAfdeling[region] || 0,
       existing: total ? Math.round((regionStats.active / total) * 100) : 0,
       resigned: total ? Math.round((regionStats.resigned / total) * 100) : 0,
-      graduateFill: regionStats.allocation ? Math.round((regionStats.graduates / regionStats.allocation) * 100) : 0,
+      graduateFill: total ? Math.round((regionStats.graduates / total) * 100) : 0,
     };
   });
 
-  const totalAllocation = data.length;
-  const totalActive = data.filter(isActive).length;
-  const totalResigned = data.length - totalActive;
-  const totalLocations = new Set(data.map((employee) => employee["LOKASI TERAKHIR"]).filter(Boolean)).size;
-  const totalGraduates = data.filter(isGraduate).length;
+  const totalActive = validEmployees.filter(isActive).length;
+  const totalResigned = validEmployees.length - totalActive;
+  const totalAllocation = totalActive + totalResigned;
+  const totalGraduates = validEmployees.filter(isGraduate).length;
+  
   const total = {
     region: "Total",
     allocation: totalAllocation,
-    departments: totalLocations,
+    departments: 302, // dummy total afdeling
     existing: totalAllocation ? Math.round((totalActive / totalAllocation) * 100) : 0,
     resigned: totalAllocation ? Math.round((totalResigned / totalAllocation) * 100) : 0,
     graduateFill: totalAllocation ? Math.round((totalGraduates / totalAllocation) * 100) : 0,
@@ -435,13 +326,8 @@ export function RegionalKpi({ data = [], summaryData = [] }) {
         <h2 className="text-base font-bold text-gray-800">KPI Regional</h2>
         <p className="text-xs text-gray-500 mt-1">Ringkasan data aktif, resign, dan lulusan berdasarkan region</p>
       </div>
-      <div className="p-6 pb-0">
-        <TrainingKpi data={data} summaryData={summaryData} />
-        {renderRegionTable("Persentasi lulusan Eksis", eksisRows, "text-green-700")}
-        {renderRegionTable("Persentasi lulusan Resign", resignRows, "text-red-600")}
-        <ProgramDiagnosticsTable data={summaryData.length ? summaryData : data} />
-      </div>
-      <div className="overflow-x-auto">
+
+      <div className="overflow-x-auto border-b border-gray-100">
         <table className="w-full min-w-[720px] border-collapse text-sm">
           <thead>
             <tr className="bg-[#244f6d] text-white">
@@ -461,6 +347,12 @@ export function RegionalKpi({ data = [], summaryData = [] }) {
             ))}
           </tbody>
         </table>
+      </div>
+
+      <div className="p-6 pb-0">
+        <TrainingKpi data={data} summaryData={summaryData} />
+        {renderRegionTable("Persentasi lulusan Eksis", eksisRows, "text-green-700")}
+        {renderRegionTable("Persentasi lulusan Resign", resignRows, "text-red-600")}
       </div>
     </section>
   );

@@ -2,16 +2,33 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 
 export function EksisTab({ data = [] }) {
   
-  // Filter active staff only
-  const activeStaff = data.filter(emp => emp.STATUS === 'Eksis' || emp.STATUS === 'Aktif');
+  // Filter ONLY Lulusan (Alumni)
+  const isAlumni = (kategori) => kategori?.trim().toLowerCase() === 'alumni';
+  const allLulusan = data.filter(emp => isAlumni(emp.KATEGORI));
+  const activeLulusan = allLulusan.filter(emp => emp.STATUS === 'Eksis' || emp.STATUS === 'Aktif');
 
-  // Aggregation helper
-  const aggregateLocationsByRegion = (dataset, regionKeyword) => {
+  // Robust Region Normalizer
+  const normalizeRegion = (value = "") => {
+    const region = String(value).toLowerCase();
+    if (region.includes("riau")) return "riau";
+    if (region.includes("kalbar") || region.includes("kalimantan barat")) return "kalbar";
+    if (region.includes("kubar") || region.includes("kalimantan timur")) return "kubar";
+    if (region.includes("corp") || region.includes("pusat") || region.includes("jakarta")) return "corp";
+    return null;
+  };
+
+  // 1. TOP CHARTS: Penempatan Awal Lulusan (Semua Lulusan, Lokasi Awal MURNI tanpa fallback)
+  const aggregateAwalByRegion = (dataset, regionKeyword) => {
     const locations = {};
     dataset.forEach(emp => {
-      const region = (emp["REGION TERAKHIR"] || "").toLowerCase();
-      if (region.includes(regionKeyword.toLowerCase())) {
-        const loc = emp["LOKASI TERAKHIR"] || "Unknown";
+      const rawRegion = emp["REGION AWAL PENEMPATAN"];
+      if (!rawRegion) return; // Skip if blank in database
+
+      const region = normalizeRegion(rawRegion);
+      if (region === regionKeyword.toLowerCase()) {
+        const loc = emp["LOKASI AWAL PENEMPATAN"];
+        if (!loc) return; // Skip if blank in database
+        
         locations[loc] = (locations[loc] || 0) + 1;
       }
     });
@@ -22,46 +39,57 @@ export function EksisTab({ data = [] }) {
     })).sort((a, b) => b.val - a.val); // Sort descending
   };
 
-  const dataRiau = aggregateLocationsByRegion(activeStaff, "riau");
-  const dataKalbar = aggregateLocationsByRegion(activeStaff, "kalbar");
-  const dataKubar = aggregateLocationsByRegion(activeStaff, "kubar");
+  const dataRiauAwal = aggregateAwalByRegion(allLulusan, "riau");
+  const dataKalbarAwal = aggregateAwalByRegion(allLulusan, "kalbar");
+  const dataKubarAwal = aggregateAwalByRegion(allLulusan, "kubar");
 
-  // Time based logic
+  // 2. BOTTOM CHARTS: Lokasi Lulusan Eksis per PT (Aktif, Lokasi Terakhir, Kumulatif berdasar Tahun Angkatan)
+  const getYear = (emp) => {
+    const angkatanMatch = String(emp["ANGKATAN FR ACADEMY"] || emp.angkatan || "").match(/(?:19|20)\d{2}/);
+    if (angkatanMatch) return Number(angkatanMatch[0]);
+    if (emp["JOIN DATE"]) return new Date(emp["JOIN DATE"]).getFullYear();
+    return new Date().getFullYear();
+  };
+
   const currentYear = new Date().getFullYear();
   
-  const active1Tahun = activeStaff.filter(emp => {
-    const joinYear = emp["JOIN DATE"] ? new Date(emp["JOIN DATE"]).getFullYear() : currentYear;
-    return (currentYear - joinYear) <= 1;
-  });
+  // Cumulative filters
+  const active1Tahun = activeLulusan.filter(emp => getYear(emp) >= currentYear);
+  const active3Tahun = activeLulusan.filter(emp => getYear(emp) >= currentYear - 2);
+  const active5Tahun = activeLulusan.filter(emp => getYear(emp) >= currentYear - 5);
 
-  const active3Tahun = activeStaff.filter(emp => {
-    const joinYear = emp["JOIN DATE"] ? new Date(emp["JOIN DATE"]).getFullYear() : currentYear;
-    const diff = currentYear - joinYear;
-    return diff > 1 && diff <= 3;
-  });
+  const regionOrder = { "riau": 1, "kalbar": 2, "kubar": 3, "corp": 4 };
 
-  const active5Tahun = activeStaff.filter(emp => {
-    const joinYear = emp["JOIN DATE"] ? new Date(emp["JOIN DATE"]).getFullYear() : currentYear;
-    const diff = currentYear - joinYear;
-    return diff > 3 && diff <= 5;
-  });
-
-  // Aggregate locations across all regions for time-based charts
-  const aggregateAllLocations = (dataset) => {
+  const aggregateGroupedLocations = (dataset) => {
     const locations = {};
     dataset.forEach(emp => {
       const loc = emp["LOKASI TERAKHIR"] || "Unknown";
-      locations[loc] = (locations[loc] || 0) + 1;
+      const region = normalizeRegion(emp["REGION TERAKHIR"]) || "lainnya";
+      
+      const key = `${region}_${loc}`;
+      if (!locations[key]) {
+        locations[key] = { name: loc, region: region, count: 0 };
+      }
+      locations[key].count += 1;
     });
-    return Object.keys(locations).map(key => ({
-      name: key,
-      val: locations[key]
-    })).sort((a, b) => b.val - a.val);
+    
+    return Object.values(locations)
+      .map(item => ({
+        name: item.name,
+        val: item.count,
+        region: item.region
+      }))
+      .sort((a, b) => {
+        const rA = regionOrder[a.region] || 99;
+        const rB = regionOrder[b.region] || 99;
+        if (rA !== rB) return rA - rB;
+        return b.val - a.val; // descending count within region
+      });
   };
 
-  const dataLulusan1Tahun = aggregateAllLocations(active1Tahun);
-  const dataLulusan3Tahun = aggregateAllLocations(active3Tahun);
-  const dataLulusan5Tahun = aggregateAllLocations(active5Tahun);
+  const dataLulusan1Tahun = aggregateGroupedLocations(active1Tahun);
+  const dataLulusan3Tahun = aggregateGroupedLocations(active3Tahun);
+  const dataLulusan5Tahun = aggregateGroupedLocations(active5Tahun);
 
   const CustomTooltip = ({ active, payload, label }) => {
     if (active && payload && payload.length) {
@@ -75,15 +103,75 @@ export function EksisTab({ data = [] }) {
     return null;
   };
 
-  const renderChart = (title, chartData) => (
+  const CustomGroupedTick = (props) => {
+    const { x, y, payload, index, data } = props;
+    const item = data[index];
+    if (!item) return null;
+
+    const region = item.region;
+    let start = -1, end = -1;
+    for (let i = 0; i < data.length; i++) {
+      if (data[i].region === region) {
+        if (start === -1) start = i;
+        end = i;
+      }
+    }
+    const middleIndex = Math.floor((start + end) / 2);
+    const isMiddle = index === middleIndex;
+    const isRegionStart = index === start;
+    const isRegionEnd = index === end;
+
+    const bracketColor = "#1a5b28"; // Dark forest green (same as the label text) to make it highly visible
+    const strokeW = 2; // Thicker lines for clear boundaries
+
+    return (
+      <g transform={`translate(${x},${y})`}>
+        <text x={0} y={0} dy={12} textAnchor="end" fill="#1a5b28" fontSize={9} transform="rotate(-45)">
+          {payload.value}
+        </text>
+        
+        {/* Horizontal bracket line */}
+        <line 
+          x1={isRegionStart ? 0 : -100} 
+          y1={44} 
+          x2={isRegionEnd ? 0 : 100} 
+          y2={44} 
+          stroke={bracketColor} 
+          strokeWidth={strokeW} 
+        />
+        
+        {/* Vertical bracket ends (made taller for visibility) */}
+        {isRegionStart && (
+          <line x1={0} y1={36} x2={0} y2={44} stroke={bracketColor} strokeWidth={strokeW} />
+        )}
+        {isRegionEnd && (
+          <line x1={0} y1={36} x2={0} y2={44} stroke={bracketColor} strokeWidth={strokeW} />
+        )}
+
+        {isMiddle && (
+          <text x={0} y={60} textAnchor="middle" fill="#0b4a1b" fontSize={12} fontWeight="900">
+            {region.toUpperCase()}
+          </text>
+        )}
+      </g>
+    );
+  };
+
+  const renderChart = (title, chartData, isGrouped = false) => (
     <div className="bg-[#f0f9f3] p-6 rounded-3xl border border-[#2c8f42]/20 shadow-sm flex flex-col items-center">
       <h3 className="text-xs font-extrabold text-[#1a5b28] uppercase tracking-wider mb-6 text-center">{title}</h3>
       <div className="w-full h-[250px]">
         {chartData.length > 0 ? (
           <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={chartData} margin={{ top: 20, right: 10, left: -20, bottom: 20 }}>
+            <BarChart data={chartData} margin={{ top: 20, right: 10, left: -20, bottom: isGrouped ? 80 : 30 }}>
               <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#d1e8d8" />
-              <XAxis dataKey="name" tick={{ fontSize: 9, fill: '#1a5b28' }} axisLine={false} tickLine={false} interval={0} angle={-45} textAnchor="end" />
+              <XAxis 
+                dataKey="name" 
+                axisLine={false} 
+                tickLine={false} 
+                interval={0} 
+                tick={isGrouped ? <CustomGroupedTick data={chartData} /> : { fontSize: 9, fill: '#1a5b28', angle: -45, textAnchor: "end" }}
+              />
               <YAxis tick={{ fontSize: 10, fill: '#1a5b28' }} axisLine={false} tickLine={false} />
               <Tooltip content={<CustomTooltip />} cursor={{ fill: '#eaf4ec' }} />
               <Bar dataKey="val" fill="#14756c" radius={[4, 4, 0, 0]} barSize={12}>
@@ -105,20 +193,20 @@ export function EksisTab({ data = [] }) {
       
       {/* Top Row: Penempatan Awal per Region */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {renderChart("Penempatan Lulusan Region Riau", dataRiau)}
-        {renderChart("Penempatan Lulusan Region Kalbar", dataKalbar)}
-        {renderChart("Penempatan Lulusan Region Kubar", dataKubar)}
+        {renderChart("Penempatan Awal Lulusan Region Riau", dataRiauAwal, false)}
+        {renderChart("Penempatan Awal Lulusan Region Kalbar", dataKalbarAwal, false)}
+        {renderChart("Penempatan Awal Lulusan Region Kubar", dataKubarAwal, false)}
       </div>
 
       {/* Middle Row: Lulusan Eksis 1 Tahun & 3 Tahun */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {renderChart("Lokasi Lulusan Eksis <= 1 Tahun", dataLulusan1Tahun)}
-        {renderChart("Lokasi Lulusan Eksis 2 - 3 Tahun", dataLulusan3Tahun)}
+        {renderChart(`Lokasi Lulusan Eksis 1 Tahun (${currentYear})`, dataLulusan1Tahun, true)}
+        {renderChart(`Lokasi Lulusan Eksis 3 Tahun (${currentYear - 2}-${currentYear})`, dataLulusan3Tahun, true)}
       </div>
 
       {/* Bottom Row: Lulusan Eksis 5 Tahun */}
       <div className="grid grid-cols-1 gap-6">
-        {renderChart("Lokasi Lulusan Eksis 4 - 5 Tahun", dataLulusan5Tahun)}
+        {renderChart(`Lokasi Lulusan Eksis 5 Tahun (${currentYear - 5}-${currentYear})`, dataLulusan5Tahun, true)}
       </div>
 
     </div>

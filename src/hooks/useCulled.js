@@ -42,9 +42,14 @@ export function useCulled() {
   }, []);
 
   const addCulled = async (newCulled) => {
+    let nextId = 1;
+    if (data && data.length > 0) {
+      nextId = Math.max(...data.map(item => item.id_culled || 0)) + 1;
+    }
+
     const { data: inserted, error } = await supabase
       .from('culled')
-      .insert([newCulled])
+      .insert([{ ...newCulled, id_culled: nextId }])
       .select('*, angkatan(*)');
     
     if (error) throw error;

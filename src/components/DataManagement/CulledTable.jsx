@@ -127,7 +127,7 @@ export function CulledTable({
                     </span>
                   </td>
                   <td className="py-4 px-6 text-sm text-gray-600 font-medium">
-                    {item.alasan || "-"}
+                    {(item.alasan || "-").replace(/\[(In Class|OJT)\]\s*/ig, "")}
                   </td>
                   <td className="py-4 px-6 text-center">
                     <div className="flex items-center justify-center gap-2">

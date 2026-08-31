@@ -39,11 +39,21 @@ export default function CulledEmployees() {
   };
 
   const handleSubmitForm = async (formData) => {
+    let finalAlasan = formData.alasan || "";
+    
+    // Clean up any existing tags first to prevent duplicate/conflicting tags when editing
+    finalAlasan = finalAlasan.replace(/\[(In Class|OJT)\]\s*/ig, "").trim();
+    
+    // Inject fase_program into alasan if applicable
+    if (formData.kategori_status === "Culled" && formData.fase_program) {
+      finalAlasan = `[${formData.fase_program}] ${finalAlasan}`.trim();
+    }
+
     const payload = { 
       nama: formData.nama,
       id_angkatan: formData.id_angkatan,
       kategori_status: formData.kategori_status,
-      alasan: formData.alasan
+      alasan: finalAlasan
     };
 
     if (editingEmployee) {
@@ -70,7 +80,7 @@ export default function CulledEmployees() {
   return (
     <div className="h-full">
       <CulledTable 
-        data={data}
+        data={(data || []).filter(item => item.nama !== 'Manual Entry')}
         loading={loading}
         title="Data Peserta Culled"
         description="Daftar peserta pelatihan FR Academy yang dikeluarkan atau tidak lulus."

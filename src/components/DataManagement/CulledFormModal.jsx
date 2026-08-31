@@ -4,8 +4,9 @@ import { X, Save, Loader2 } from "lucide-react";
 const initialFormState = {
   nama: "",
   id_angkatan: "",
+  kategori_status: "Culled",
   alasan: "",
-  kategori_status: "Culled"
+  fase_program: ""
 };
 
 export function CulledFormModal({ isOpen, onClose, onSubmit, initialData, angkatanList = [] }) {
@@ -14,7 +15,15 @@ export function CulledFormModal({ isOpen, onClose, onSubmit, initialData, angkat
 
   useEffect(() => {
     if (initialData) {
-      setFormData(initialData);
+      let fase = "";
+      const alasanLower = (initialData.alasan || "").toLowerCase();
+      if (alasanLower.includes("in class")) fase = "In Class";
+      else if (alasanLower.includes("ojt")) fase = "OJT";
+
+      setFormData({
+        ...initialData,
+        fase_program: fase
+      });
     } else {
       setFormData(initialFormState);
     }
@@ -137,6 +146,25 @@ export function CulledFormModal({ isOpen, onClose, onSubmit, initialData, angkat
               <option value="Tidak Lulus">Tidak Lulus (Gagal Evaluasi)</option>
             </select>
           </div>
+
+          {formData.kategori_status === "Culled" && (
+            <div>
+              <label className="block text-xs font-semibold text-gray-600 mb-1">
+                Tahapan Culling/Resign <span className="text-red-500">*</span>
+              </label>
+              <select
+                name="fase_program"
+                value={formData.fase_program || ""}
+                onChange={handleChange}
+                required
+                className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[#2c8f42] outline-none transition-all"
+              >
+                <option value="">-- Pilih Tahapan --</option>
+                <option value="In Class">Resign / Culling In Class</option>
+                <option value="OJT">Resign / Culling OJT</option>
+              </select>
+            </div>
+          )}
 
           <div>
             <label className="block text-xs font-semibold text-gray-600 mb-1">
