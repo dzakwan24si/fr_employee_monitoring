@@ -126,7 +126,6 @@ function TrainingKpi({ data = [], summaryData = [] }) {
 
   return (
     <div className="mb-6 overflow-x-auto">
-      <h3 className="bg-[#078c91] text-white px-4 py-2 font-bold text-sm">KPI Training per Periode</h3>
       <table className="w-full min-w-[900px] border-collapse text-sm">
         <thead>
           <tr className="bg-[#078c91] text-white">
@@ -323,9 +322,7 @@ export function RegionalKpi({ data = [], summaryData = [] }) {
   return (
     <section className="mt-6 bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
       <div className="px-6 py-4 border-b border-gray-100">
-        <h2 className="text-base font-bold text-gray-800">KPI Regional</h2>
-        <p className="text-xs text-gray-500 mt-1">Ringkasan data aktif, resign, dan lulusan berdasarkan region</p>
-      </div>
+     </div>
 
       <div className="overflow-x-auto border-b border-gray-100">
         <table className="w-full min-w-[720px] border-collapse text-sm">

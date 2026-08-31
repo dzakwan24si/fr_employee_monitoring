@@ -116,7 +116,7 @@ export function AnalisaTab({ data = [], summaryData = [] }) {
                 <th className="bg-[#1f3f60] text-white p-2 border border-gray-400 text-[10px]">Resign<br/>OJT</th>
                 {/* Aktif Headers */}
                 <th className="bg-[#1464a8] text-white p-2 border border-gray-400">Riau</th>
-                <th className="bg-[#1464a8] text-white p-2 border border-gray-400">Kalbar</th>
+                <th classN  ame="bg-[#1464a8] text-white p-2 border border-gray-400">Kalbar</th>
                 <th className="bg-[#1464a8] text-white p-2 border border-gray-400">Kubar</th>
                 <th className="bg-[#1464a8] text-white p-2 border border-gray-400">Corp</th>
                 <th className="bg-[#1464a8] text-white p-2 border border-gray-400 font-bold">Total</th>
