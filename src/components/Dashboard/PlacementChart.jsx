@@ -22,7 +22,7 @@ export function PlacementChart({ data = [] }) {
   }, {});
 
   const chartData = Object.values(placementData);
-  const colors = ['#2c8f42', '#0a4239', '#5fd278']; // Theme colors for bars
+  const colors = ['#2c8f42', '#0a4239', '#5fd278'];
 
   return (
     <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col">
