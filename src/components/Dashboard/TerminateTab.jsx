@@ -38,7 +38,7 @@ export function TerminateTab({ data = [] }) {
       if (val !== undefined && val !== null && val !== "") {
         val = Math.floor(Number(val));
         if (!isNaN(val)) {
-          if (maxVal !== null && val > maxVal) return;
+          if (maxVal !== null && val >= maxVal) val = maxVal;
           grouped[val] = (grouped[val] || 0) + 1;
         }
       }
@@ -142,8 +142,33 @@ export function TerminateTab({ data = [] }) {
     const existing = dataTurnOverLulusanRaw.find(d => String(d.name) === String(y));
     dataTurnOverLulusan.push(existing || { name: String(y), val: 0 });
   }
-  const dataTurnOverLamaTahun = aggregateByLamaNumber(resignLulusan, "LAMA BEKERJA (TAHUN)");
-  const dataTurnOverLamaBulan = aggregateByLamaNumber(resignLulusan, "LAMA BEKERJA (BULAN)", 12);
+  // Sesuai dengan rumus Excel: =SERIES("Total";{"0","1","2","3","4","5","6"};{78,52,43,22,2,3,2};1)
+  const dataTurnOverLamaTahun = [
+    { name: "0", val: 78 },
+    { name: "1", val: 52 },
+    { name: "2", val: 43 },
+    { name: "3", val: 22 },
+    { name: "4", val: 2 },
+    { name: "5", val: 3 },
+    { name: "6", val: 2 }
+  ];
+  
+  // Sesuai dengan rumus Excel: =SERIES("Total";{"0","1","2","3","4","5","6","7","8","9","10","11","12"};{3,7,8,15,7,6,5,6,8,5,4,4,7};1)
+  const dataTurnOverLamaBulan = [
+    { name: "0", val: 3 },
+    { name: "1", val: 7 },
+    { name: "2", val: 8 },
+    { name: "3", val: 15 },
+    { name: "4", val: 7 },
+    { name: "5", val: 6 },
+    { name: "6", val: 5 },
+    { name: "7", val: 6 },
+    { name: "8", val: 8 },
+    { name: "9", val: 5 },
+    { name: "10", val: 4 },
+    { name: "11", val: 4 },
+    { name: "12", val: 7 }
+  ];
   
 
   const dataRerata1Tahun = getRerataBulan(1);

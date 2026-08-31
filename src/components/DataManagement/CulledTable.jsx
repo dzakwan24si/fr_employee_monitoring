@@ -12,15 +12,22 @@ export function CulledTable({
 }) {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("Semua");
+  const [angkatanFilter, setAngkatanFilter] = useState("Semua");
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
+
+  // Get unique Angkatan options
+  const angkatanOptions = Array.from(new Set(
+    data.map(item => (item.angkatan?.angkatan || "").trim()).filter(Boolean)
+  )).sort();
 
   // Filter Data
   const filteredData = data.filter(item => {
     const matchesSearch = (item.nama?.toLowerCase() || "").includes(searchTerm.toLowerCase()) || 
                           (item.angkatan?.angkatan?.toLowerCase() || "").includes(searchTerm.toLowerCase());
     const matchesStatus = statusFilter === "Semua" ? true : (item.kategori_status === statusFilter || (statusFilter === "Culled" && !item.kategori_status));
-    return matchesSearch && matchesStatus;
+    const matchesAngkatan = angkatanFilter === "Semua" ? true : (item.angkatan?.angkatan || "").trim() === angkatanFilter;
+    return matchesSearch && matchesStatus && matchesAngkatan;
   });
 
   // Pagination Logic
@@ -45,6 +52,21 @@ export function CulledTable({
         </div>
         <div className="flex flex-wrap items-center gap-3">
           
+          {/* Angkatan Filter */}
+          <select
+            value={angkatanFilter}
+            onChange={(e) => {
+              setAngkatanFilter(e.target.value);
+              setCurrentPage(1);
+            }}
+            className="px-4 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#2c8f42] outline-none transition-all cursor-pointer font-medium text-gray-600"
+          >
+            <option value="Semua">Semua Angkatan</option>
+            {angkatanOptions.map((opt) => (
+              <option key={opt} value={opt}>{opt}</option>
+            ))}
+          </select>
+
           {/* Status Filter */}
           <select
             value={statusFilter}

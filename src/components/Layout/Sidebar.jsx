@@ -1,5 +1,5 @@
 import { NavLink } from "react-router-dom";
-import { LayoutDashboard, Users, UserX, UserMinus, GraduationCap } from "lucide-react";
+import { LayoutDashboard, Users, UserX, UserMinus, GraduationCap, Database } from "lucide-react";
 
 export function Sidebar() {
   const mainNavItems = [
@@ -60,6 +60,20 @@ export function Sidebar() {
               >
                 <GraduationCap size={18} strokeWidth={2.5} />
                 <span>Data Angkatan</span>
+              </NavLink>
+            </li>
+            <li>
+              <NavLink
+                to="/database"
+                className={({ isActive }) =>
+                  `flex items-center gap-3 px-4 py-3 rounded-2xl transition-all font-medium text-sm ${isActive
+                    ? "bg-[#2c8f42] text-white shadow-md shadow-[#2c8f42]/20"
+                    : "text-gray-500 hover:bg-gray-50 hover:text-gray-900"
+                  }`
+                }
+              >
+                <Database size={18} strokeWidth={2.5} />
+                <span>Data Karyawan</span>
               </NavLink>
             </li>
           </ul>

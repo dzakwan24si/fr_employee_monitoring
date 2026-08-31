@@ -5,6 +5,7 @@ import EksisEmployees from "./pages/EksisEmployees";
 import TerminateEmployees from "./pages/TerminateEmployees";
 import CulledEmployees from "./pages/CulledEmployees";
 import AngkatanData from "./pages/AngkatanData";
+import DatabaseData from "./pages/DatabaseData";
 
 function App() {
   return (
@@ -16,6 +17,7 @@ function App() {
           <Route path="terminate" element={<TerminateEmployees />} />
           <Route path="culled" element={<CulledEmployees />} />
           <Route path="angkatan" element={<AngkatanData />} />
+          <Route path="database" element={<DatabaseData />} />
         </Route>
       </Routes>
     </Router>

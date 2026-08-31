@@ -9,13 +9,9 @@ export function EksisTab({ data = [] }) {
   
   // Filter ONLY Lulusan (Alumni)
   const isAlumni = (kategori) => kategori?.trim().toLowerCase() === 'alumni';
-  const allLulusan = data.filter(emp => isAlumni(emp.KATEGORI));
+  // Exclude FAT II 2026 from all charts because they are still training
+  const allLulusan = data.filter(emp => isAlumni(emp.KATEGORI) && (emp["ANGKATAN FR ACADEMY"] || emp.ANGKATAN || "").trim() !== "FAT II 2026");
   const activeLulusan = allLulusan.filter(emp => emp.STATUS === 'Eksis' || emp.STATUS === 'Aktif');
-
-  // Extract all available Angkatan and exclude "FAT II 2026"
-  const globalAngkatanOptions = Array.from(new Set(
-    activeLulusan.map(emp => (emp["ANGKATAN FR ACADEMY"] || emp.ANGKATAN || "").trim()).filter(Boolean)
-  )).filter(a => a !== "FAT II 2026").sort();
 
   // Robust Region Normalizer
   const normalizeRegion = (value = "") => {
@@ -65,18 +61,30 @@ export function EksisTab({ data = [] }) {
   
   // Cumulative filters with specific Angkatan filters applied
   const active1TahunRaw = activeLulusan.filter(emp => getYear(emp) >= currentYear);
+  const angkatanOptions1T = Array.from(new Set(
+    active1TahunRaw.map(emp => (emp["ANGKATAN FR ACADEMY"] || emp.ANGKATAN || "").trim()).filter(Boolean)
+  )).filter(a => a !== "FAT II 2026").sort();
+  
   const active1Tahun = active1TahunRaw.filter(emp => {
     if (filterAngkatan1T === 'All') return true;
     return (emp["ANGKATAN FR ACADEMY"] || emp.ANGKATAN || "").trim() === filterAngkatan1T;
   });
 
   const active3TahunRaw = activeLulusan.filter(emp => getYear(emp) >= currentYear - 2);
+  const angkatanOptions3T = Array.from(new Set(
+    active3TahunRaw.map(emp => (emp["ANGKATAN FR ACADEMY"] || emp.ANGKATAN || "").trim()).filter(Boolean)
+  )).filter(a => a !== "FAT II 2026").sort();
+  
   const active3Tahun = active3TahunRaw.filter(emp => {
     if (filterAngkatan3T === 'All') return true;
     return (emp["ANGKATAN FR ACADEMY"] || emp.ANGKATAN || "").trim() === filterAngkatan3T;
   });
 
   const active5TahunRaw = activeLulusan.filter(emp => getYear(emp) >= currentYear - 5);
+  const angkatanOptions5T = Array.from(new Set(
+    active5TahunRaw.map(emp => (emp["ANGKATAN FR ACADEMY"] || emp.ANGKATAN || "").trim()).filter(Boolean)
+  )).filter(a => a !== "FAT II 2026").sort();
+  
   const active5Tahun = active5TahunRaw.filter(emp => {
     if (filterAngkatan5T === 'All') return true;
     return (emp["ANGKATAN FR ACADEMY"] || emp.ANGKATAN || "").trim() === filterAngkatan5T;
@@ -239,7 +247,7 @@ export function EksisTab({ data = [] }) {
                 onChange={(e) => setFilterAngkatan1T(e.target.value)}
               >
                 <option value="All">Semua Angkatan</option>
-                {globalAngkatanOptions.map(angkatan => (
+                {angkatanOptions1T.map(angkatan => (
                   <option key={angkatan} value={angkatan}>{angkatan}</option>
                 ))}
               </select>
@@ -259,7 +267,7 @@ export function EksisTab({ data = [] }) {
                 onChange={(e) => setFilterAngkatan3T(e.target.value)}
               >
                 <option value="All">Semua Angkatan</option>
-                {globalAngkatanOptions.map(angkatan => (
+                {angkatanOptions3T.map(angkatan => (
                   <option key={angkatan} value={angkatan}>{angkatan}</option>
                 ))}
               </select>
@@ -283,7 +291,7 @@ export function EksisTab({ data = [] }) {
                 onChange={(e) => setFilterAngkatan5T(e.target.value)}
               >
                 <option value="All">Semua Angkatan</option>
-                {globalAngkatanOptions.map(angkatan => (
+                {angkatanOptions5T.map(angkatan => (
                   <option key={angkatan} value={angkatan}>{angkatan}</option>
                 ))}
               </select>
