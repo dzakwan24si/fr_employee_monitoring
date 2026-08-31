@@ -3,6 +3,9 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 import { ChevronDown } from 'lucide-react';
 
 export function EksisTab({ data = [] }) {
+  const [filterAngkatanRiau, setFilterAngkatanRiau] = useState('All');
+  const [filterAngkatanKalbar, setFilterAngkatanKalbar] = useState('All');
+  const [filterAngkatanKubar, setFilterAngkatanKubar] = useState('All');
   const [filterAngkatan1T, setFilterAngkatan1T] = useState('All');
   const [filterAngkatan3T, setFilterAngkatan3T] = useState('All');
   const [filterAngkatan5T, setFilterAngkatan5T] = useState('All');
@@ -12,6 +15,11 @@ export function EksisTab({ data = [] }) {
   // Exclude FAT II 2026 from all charts because they are still training
   const allLulusan = data.filter(emp => isAlumni(emp.KATEGORI) && (emp["ANGKATAN FR ACADEMY"] || emp.ANGKATAN || "").trim() !== "FAT II 2026");
   const activeLulusan = allLulusan.filter(emp => emp.STATUS === 'Eksis' || emp.STATUS === 'Aktif');
+
+  // Angkatan Options for Penempatan Awal
+  const angkatanOptionsAwal = Array.from(new Set(
+    allLulusan.map(emp => (emp["ANGKATAN FR ACADEMY"] || emp.ANGKATAN || "").trim()).filter(Boolean)
+  )).sort();
 
   // Robust Region Normalizer
   const normalizeRegion = (value = "") => {
@@ -24,9 +32,15 @@ export function EksisTab({ data = [] }) {
   };
 
   // 1. TOP CHARTS: Penempatan Awal Lulusan (Semua Lulusan, Lokasi Awal MURNI tanpa fallback)
-  const aggregateAwalByRegion = (dataset, regionKeyword) => {
+  const aggregateAwalByRegion = (dataset, regionKeyword, angkatanFilter) => {
+    // Filter dataset by angkatan first
+    const filteredDataset = dataset.filter(emp => {
+      if (angkatanFilter === 'All') return true;
+      return (emp["ANGKATAN FR ACADEMY"] || emp.ANGKATAN || "").trim() === angkatanFilter;
+    });
+
     const locations = {};
-    dataset.forEach(emp => {
+    filteredDataset.forEach(emp => {
       const rawRegion = emp["REGION AWAL PENEMPATAN"];
       if (!rawRegion) return; // Skip if blank in database
 
@@ -45,9 +59,9 @@ export function EksisTab({ data = [] }) {
     })).sort((a, b) => b.val - a.val); // Sort descending
   };
 
-  const dataRiauAwal = aggregateAwalByRegion(allLulusan, "riau");
-  const dataKalbarAwal = aggregateAwalByRegion(allLulusan, "kalbar");
-  const dataKubarAwal = aggregateAwalByRegion(allLulusan, "kubar");
+  const dataRiauAwal = aggregateAwalByRegion(allLulusan, "riau", filterAngkatanRiau);
+  const dataKalbarAwal = aggregateAwalByRegion(allLulusan, "kalbar", filterAngkatanKalbar);
+  const dataKubarAwal = aggregateAwalByRegion(allLulusan, "kubar", filterAngkatanKubar);
 
   // 2. BOTTOM CHARTS: Lokasi Lulusan Eksis per PT (Aktif, Lokasi Terakhir, Kumulatif berdasar Tahun Angkatan)
   const getYear = (emp) => {
@@ -228,9 +242,72 @@ export function EksisTab({ data = [] }) {
       
       {/* Top Row: Penempatan Awal per Region */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {renderChart("Penempatan Awal Lulusan Region Riau", dataRiauAwal, false)}
-        {renderChart("Penempatan Awal Lulusan Region Kalbar", dataKalbarAwal, false)}
-        {renderChart("Penempatan Awal Lulusan Region Kubar", dataKubarAwal, false)}
+        {renderChart(
+          "Penempatan Awal Lulusan Region Riau", 
+          dataRiauAwal, 
+          false,
+          (
+            <div className="relative z-10 min-w-[150px]">
+              <select 
+                className="w-full appearance-none flex items-center gap-2 text-xs text-[#1a5b28] font-bold border border-[#2c8f42]/40 pl-3 pr-8 py-1.5 rounded-full hover:bg-white focus:outline-none focus:ring-2 focus:ring-[#2c8f42] bg-[#eaf4ec] cursor-pointer shadow-sm"
+                value={filterAngkatanRiau}
+                onChange={(e) => setFilterAngkatanRiau(e.target.value)}
+              >
+                <option value="All">Semua Angkatan</option>
+                {angkatanOptionsAwal.map(angkatan => (
+                  <option key={angkatan} value={angkatan}>{angkatan}</option>
+                ))}
+              </select>
+              <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-[#1a5b28]">
+                <ChevronDown size={14} strokeWidth={3} />
+              </div>
+            </div>
+          )
+        )}
+        {renderChart(
+          "Penempatan Awal Lulusan Region Kalbar", 
+          dataKalbarAwal, 
+          false,
+          (
+            <div className="relative z-10 min-w-[150px]">
+              <select 
+                className="w-full appearance-none flex items-center gap-2 text-xs text-[#1a5b28] font-bold border border-[#2c8f42]/40 pl-3 pr-8 py-1.5 rounded-full hover:bg-white focus:outline-none focus:ring-2 focus:ring-[#2c8f42] bg-[#eaf4ec] cursor-pointer shadow-sm"
+                value={filterAngkatanKalbar}
+                onChange={(e) => setFilterAngkatanKalbar(e.target.value)}
+              >
+                <option value="All">Semua Angkatan</option>
+                {angkatanOptionsAwal.map(angkatan => (
+                  <option key={angkatan} value={angkatan}>{angkatan}</option>
+                ))}
+              </select>
+              <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-[#1a5b28]">
+                <ChevronDown size={14} strokeWidth={3} />
+              </div>
+            </div>
+          )
+        )}
+        {renderChart(
+          "Penempatan Awal Lulusan Region Kubar", 
+          dataKubarAwal, 
+          false,
+          (
+            <div className="relative z-10 min-w-[150px]">
+              <select 
+                className="w-full appearance-none flex items-center gap-2 text-xs text-[#1a5b28] font-bold border border-[#2c8f42]/40 pl-3 pr-8 py-1.5 rounded-full hover:bg-white focus:outline-none focus:ring-2 focus:ring-[#2c8f42] bg-[#eaf4ec] cursor-pointer shadow-sm"
+                value={filterAngkatanKubar}
+                onChange={(e) => setFilterAngkatanKubar(e.target.value)}
+              >
+                <option value="All">Semua Angkatan</option>
+                {angkatanOptionsAwal.map(angkatan => (
+                  <option key={angkatan} value={angkatan}>{angkatan}</option>
+                ))}
+              </select>
+              <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-[#1a5b28]">
+                <ChevronDown size={14} strokeWidth={3} />
+              </div>
+            </div>
+          )
+        )}
       </div>
 
       {/* Middle Row: Lulusan Eksis 1 Tahun & 3 Tahun */}
