@@ -9,6 +9,8 @@ export default function DatabaseData() {
   // Table States
   const [searchTerm, setSearchTerm] = useState("");
   const [angkatanFilter, setAngkatanFilter] = useState("Semua");
+  const [regionFilter, setRegionFilter] = useState("Semua");
+  const [statusFilter, setStatusFilter] = useState("Semua");
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
 
@@ -52,9 +54,17 @@ export default function DatabaseData() {
     return <div className="p-8 text-center text-red-500">Error: {error}</div>;
   }
 
-  // Get unique Angkatan options
+  // Get unique options
   const angkatanOptions = Array.from(new Set(
     data.map(emp => (emp["ANGKATAN FR ACADEMY"] || "").trim()).filter(Boolean)
+  )).sort();
+  
+  const regionOptions = Array.from(new Set(
+    data.map(emp => (emp["REGION TERAKHIR"] || "").trim()).filter(Boolean)
+  )).sort();
+  
+  const statusOptions = Array.from(new Set(
+    data.map(emp => (emp["STATUS"] || "").trim()).filter(Boolean)
   )).sort();
 
   // Filter Data
@@ -70,8 +80,10 @@ export default function DatabaseData() {
     );
     
     const matchesAngkatan = angkatanFilter === "Semua" ? true : (item["ANGKATAN FR ACADEMY"] || "").trim() === angkatanFilter;
+    const matchesRegion = regionFilter === "Semua" ? true : (item["REGION TERAKHIR"] || "").trim() === regionFilter;
+    const matchesStatus = statusFilter === "Semua" ? true : (item["STATUS"] || "").trim() === statusFilter;
 
-    return matchesSearch && matchesAngkatan;
+    return matchesSearch && matchesAngkatan && matchesRegion && matchesStatus;
   });
 
   // Pagination Logic
@@ -111,6 +123,36 @@ export default function DatabaseData() {
           >
             <option value="Semua">Semua Angkatan</option>
             {angkatanOptions.map((opt) => (
+              <option key={opt} value={opt}>{opt}</option>
+            ))}
+          </select>
+
+          {/* Region Filter */}
+          <select
+            value={regionFilter}
+            onChange={(e) => {
+              setRegionFilter(e.target.value);
+              setCurrentPage(1);
+            }}
+            className="px-4 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#2c8f42] outline-none transition-all cursor-pointer font-medium text-gray-600"
+          >
+            <option value="Semua">Semua Region</option>
+            {regionOptions.map((opt) => (
+              <option key={opt} value={opt}>{opt}</option>
+            ))}
+          </select>
+
+          {/* Status Filter */}
+          <select
+            value={statusFilter}
+            onChange={(e) => {
+              setStatusFilter(e.target.value);
+              setCurrentPage(1);
+            }}
+            className="px-4 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#2c8f42] outline-none transition-all cursor-pointer font-medium text-gray-600"
+          >
+            <option value="Semua">Semua Status</option>
+            {statusOptions.map((opt) => (
               <option key={opt} value={opt}>{opt}</option>
             ))}
           </select>

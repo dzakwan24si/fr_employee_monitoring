@@ -68,6 +68,49 @@ export function DatabaseFormModal({ isOpen, onClose, onSubmit, initialData }) {
     }
   }, [initialData, isOpen]);
 
+  // Auto-generate Bulan & Tahun Terminate from Date Terminate
+  useEffect(() => {
+    const dateTerminate = formData["DATE TERMINATE"];
+    if (dateTerminate) {
+      const dateObj = new Date(dateTerminate);
+      if (!isNaN(dateObj.getTime())) {
+        const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Okt", "Nov", "Dec"];
+        const calculatedMonth = monthNames[dateObj.getMonth()];
+        const calculatedYear = String(dateObj.getFullYear());
+        
+        setFormData(prev => {
+          if (prev["BULAN TERMINATE"] !== calculatedMonth || prev["TAHUN TERMINATE"] !== calculatedYear) {
+            return { 
+              ...prev, 
+              "BULAN TERMINATE": calculatedMonth, 
+              "TAHUN TERMINATE": calculatedYear 
+            };
+          }
+          return prev;
+        });
+      }
+    }
+  }, [formData["DATE TERMINATE"]]);
+
+  // Auto-generate Lama Bekerja (Teks)
+  useEffect(() => {
+    const t = Number(formData["LAMA BEKERJA (TAHUN)"]);
+    const b = Number(formData["LAMA BEKERJA (BULAN)"]);
+    
+    let parts = [];
+    if (!isNaN(t) && t > 0) parts.push(`${t} Tahun`);
+    if (!isNaN(b) && b > 0) parts.push(`${b} Bulan`);
+    
+    const calculatedText = parts.join(" ");
+    
+    if (calculatedText !== formData["LAMA BEKERJA"] && (!isNaN(t) || !isNaN(b))) {
+      setFormData(prev => ({
+        ...prev,
+        "LAMA BEKERJA": calculatedText || ""
+      }));
+    }
+  }, [formData["LAMA BEKERJA (TAHUN)"], formData["LAMA BEKERJA (BULAN)"]]);
+
   if (!isOpen) return null;
 
   const handleChange = (e) => {
@@ -79,16 +122,31 @@ export function DatabaseFormModal({ isOpen, onClose, onSubmit, initialData }) {
     e.preventDefault();
     setIsSubmitting(true);
     try {
-      await onSubmit(formData);
+      const sanitizedData = { ...formData };
+      
+      // Prevent updating primary key directly
+      if (sanitizedData.ID_MONITORING) {
+        delete sanitizedData.ID_MONITORING;
+      }
+
+      // Convert empty strings to null to prevent PostgreSQL type errors
+      Object.keys(sanitizedData).forEach(key => {
+        if (sanitizedData[key] === "") {
+          sanitizedData[key] = null;
+        }
+      });
+
+      await onSubmit(sanitizedData);
       onClose();
     } catch (err) {
-      console.error(err);
+      console.error("Error submitting form:", err);
+      alert("Gagal menyimpan data: " + (err.message || "Terjadi kesalahan"));
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const InputField = ({ label, name, type = "text", placeholder }) => (
+  const InputField = ({ label, name, type = "text", placeholder, readOnly = false }) => (
     <div className="flex flex-col gap-1.5">
       <label className="text-xs font-bold text-gray-700">{label}</label>
       <input
@@ -96,8 +154,9 @@ export function DatabaseFormModal({ isOpen, onClose, onSubmit, initialData }) {
         name={name}
         value={formData[name] || ""}
         onChange={handleChange}
+        readOnly={readOnly}
         placeholder={placeholder || `Masukkan ${label}`}
-        className="px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#2c8f42] outline-none transition-all"
+        className={`px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#2c8f42] outline-none transition-all ${readOnly ? "bg-gray-100 text-gray-500 cursor-not-allowed" : "bg-gray-50"}`}
       />
     </div>
   );
@@ -154,7 +213,7 @@ export function DatabaseFormModal({ isOpen, onClose, onSubmit, initialData }) {
                 <h3 className="font-bold">Status & Pekerjaan</h3>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <InputField label="Join Date" name="JOIN DATE" placeholder="Misal: 10 Jan 2024" />
+                <InputField label="Join Date" name="JOIN DATE" type="date" />
                 <InputField label="Jabatan" name="JABATAN" />
                 <InputField label="Level Jabatan" name="LEVEL JABATAN" />
                 
@@ -217,12 +276,12 @@ export function DatabaseFormModal({ isOpen, onClose, onSubmit, initialData }) {
                 <h3 className="font-bold">Data Terminate / Resign (Jika Ada)</h3>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <InputField label="Date Terminate" name="DATE TERMINATE" />
-                <InputField label="Bulan Terminate" name="BULAN TERMINATE" />
-                <InputField label="Tahun Terminate" name="TAHUN TERMINATE" />
+                <InputField label="Date Terminate" name="DATE TERMINATE" type="date" />
+                <InputField label="Bulan Terminate" name="BULAN TERMINATE" placeholder="Otomatis..." readOnly={true} />
+                <InputField label="Tahun Terminate" name="TAHUN TERMINATE" placeholder="Otomatis..." readOnly={true} />
                 <InputField label="Lama Bekerja (Bulan Angka)" name="LAMA BEKERJA (BULAN)" type="number" />
                 <InputField label="Lama Bekerja (Tahun Angka)" name="LAMA BEKERJA (TAHUN)" type="number" />
-                <InputField label="Lama Bekerja (Teks)" name="LAMA BEKERJA" placeholder="Misal: 1 Tahun 2 Bulan" />
+                <InputField label="Lama Bekerja (Teks)" name="LAMA BEKERJA" placeholder="Otomatis terisi..." readOnly={true} />
               </div>
               <div className="grid grid-cols-1 gap-4 mt-2">
                 <InputField label="Alasan Resign" name="Alasan Resign" />
