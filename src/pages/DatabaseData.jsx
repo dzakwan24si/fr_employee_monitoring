@@ -9,6 +9,8 @@ export default function DatabaseData() {
   // Table States
   const [searchTerm, setSearchTerm] = useState("");
   const [angkatanFilter, setAngkatanFilter] = useState("Semua");
+  const [regionFilter, setRegionFilter] = useState("Semua");
+  const [statusFilter, setStatusFilter] = useState("Semua");
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
 
@@ -52,9 +54,17 @@ export default function DatabaseData() {
     return <div className="p-8 text-center text-red-500">Error: {error}</div>;
   }
 
-  // Get unique Angkatan options
+  // Get unique options
   const angkatanOptions = Array.from(new Set(
     data.map(emp => (emp["ANGKATAN FR ACADEMY"] || "").trim()).filter(Boolean)
+  )).sort();
+  
+  const regionOptions = Array.from(new Set(
+    data.map(emp => (emp["REGION TERAKHIR"] || "").trim()).filter(Boolean)
+  )).sort();
+  
+  const statusOptions = Array.from(new Set(
+    data.map(emp => (emp["STATUS"] || "").trim()).filter(Boolean)
   )).sort();
 
   // Filter Data
@@ -70,8 +80,10 @@ export default function DatabaseData() {
     );
     
     const matchesAngkatan = angkatanFilter === "Semua" ? true : (item["ANGKATAN FR ACADEMY"] || "").trim() === angkatanFilter;
+    const matchesRegion = regionFilter === "Semua" ? true : (item["REGION TERAKHIR"] || "").trim() === regionFilter;
+    const matchesStatus = statusFilter === "Semua" ? true : (item["STATUS"] || "").trim() === statusFilter;
 
-    return matchesSearch && matchesAngkatan;
+    return matchesSearch && matchesAngkatan && matchesRegion && matchesStatus;
   });
 
   // Pagination Logic
@@ -99,7 +111,7 @@ export default function DatabaseData() {
             Menampilkan seluruh {data.length} data karyawan dari database mentah.
           </p>
         </div>
-        <div className="flex flex-wrap items-center gap-3">
+        <div className="flex flex-col sm:flex-row flex-wrap items-stretch sm:items-center gap-3 w-full md:w-auto">
           {/* Angkatan Filter */}
           <select
             value={angkatanFilter}
@@ -107,7 +119,7 @@ export default function DatabaseData() {
               setAngkatanFilter(e.target.value);
               setCurrentPage(1);
             }}
-            className="px-4 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#2c8f42] outline-none transition-all cursor-pointer font-medium text-gray-600"
+            className="px-4 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#2c8f42] outline-none transition-all cursor-pointer font-medium text-gray-600 w-full sm:w-auto"
           >
             <option value="Semua">Semua Angkatan</option>
             {angkatanOptions.map((opt) => (
@@ -115,8 +127,38 @@ export default function DatabaseData() {
             ))}
           </select>
 
+          {/* Region Filter */}
+          <select
+            value={regionFilter}
+            onChange={(e) => {
+              setRegionFilter(e.target.value);
+              setCurrentPage(1);
+            }}
+            className="px-4 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#2c8f42] outline-none transition-all cursor-pointer font-medium text-gray-600 w-full sm:w-auto"
+          >
+            <option value="Semua">Semua Region</option>
+            {regionOptions.map((opt) => (
+              <option key={opt} value={opt}>{opt}</option>
+            ))}
+          </select>
+
+          {/* Status Filter */}
+          <select
+            value={statusFilter}
+            onChange={(e) => {
+              setStatusFilter(e.target.value);
+              setCurrentPage(1);
+            }}
+            className="px-4 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#2c8f42] outline-none transition-all cursor-pointer font-medium text-gray-600 w-full sm:w-auto"
+          >
+            <option value="Semua">Semua Status</option>
+            {statusOptions.map((opt) => (
+              <option key={opt} value={opt}>{opt}</option>
+            ))}
+          </select>
+
           {/* Search */}
-          <div className="relative">
+          <div className="relative w-full sm:w-auto">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
             <input
               type="text"
@@ -126,14 +168,14 @@ export default function DatabaseData() {
                 setSearchTerm(e.target.value);
                 setCurrentPage(1);
               }}
-              className="pl-9 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#2c8f42] outline-none w-64 transition-all"
+              className="pl-9 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#2c8f42] outline-none w-full sm:w-64 transition-all"
             />
           </div>
 
           {/* Add Data Button */}
           <button
             onClick={handleAdd}
-            className="flex items-center gap-2 px-4 py-2 bg-[#2c8f42] text-white rounded-xl text-sm font-bold hover:bg-[#237535] transition-colors shadow-md shadow-[#2c8f42]/20 whitespace-nowrap"
+            className="flex items-center justify-center gap-2 px-4 py-2 bg-[#2c8f42] text-white rounded-xl text-sm font-bold hover:bg-[#237535] transition-colors shadow-md shadow-[#2c8f42]/20 whitespace-nowrap w-full sm:w-auto"
           >
             <Plus size={16} strokeWidth={3} />
             Tambah Data

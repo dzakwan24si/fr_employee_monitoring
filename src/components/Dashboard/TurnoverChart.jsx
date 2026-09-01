@@ -38,11 +38,11 @@ export function TurnoverChart({ summaryData = [] }) {
       <div className="flex justify-between items-center mb-6">
         <div>
           <h3 className="text-lg font-bold text-gray-800">Tingkat Kelulusan Peserta per Angkatan</h3>
-          <p className="text-sm text-gray-500 mt-1">Status akhir peserta Academy (Lulus, Culled, Tidak Lulus)</p>
+          <p className="text-sm text-gray-500 mt-1">Status akhir peserta Academy</p>
         </div>
-        
+
         <div className="relative">
-          <select 
+          <select
             className="appearance-none flex items-center gap-2 text-sm text-gray-600 border border-gray-200 pl-4 pr-9 py-1.5 rounded-full hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#2ecc71] bg-white cursor-pointer"
             value={selectedYear}
             onChange={(e) => setSelectedYear(e.target.value)}
@@ -55,7 +55,7 @@ export function TurnoverChart({ summaryData = [] }) {
           <ChevronDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-600 pointer-events-none" />
         </div>
       </div>
-      
+
       <div className="flex-1 min-h-[350px] w-full">
         {chartData.length > 0 ? (
           <ResponsiveContainer width="100%" height="100%">
@@ -63,20 +63,27 @@ export function TurnoverChart({ summaryData = [] }) {
               data={chartData}
               margin={{ top: 20, right: 10, left: -20, bottom: 5 }}
             >
-              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
-              <XAxis dataKey="angkatan" axisLine={false} tickLine={false} tick={{fill: '#9ca3af', fontSize: 11}} dy={10} />
-              <YAxis axisLine={false} tickLine={false} tick={{fill: '#9ca3af', fontSize: 11}} dx={-10} />
-              
-              <Tooltip 
+              <CartesianGrid vertical={false} stroke="#f1f5f9" />
+              <XAxis dataKey="angkatan" axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 12 }} dy={10} />
+              <YAxis axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 12 }} dx={-10} />
+
+              <Tooltip
                 cursor={{ fill: 'transparent' }}
-                contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px -2px rgba(0, 0, 0, 0.1)', padding: '12px' }}
-                labelStyle={{ fontWeight: 'bold', color: '#374151', marginBottom: '8px' }}
+                contentStyle={{ borderRadius: '12px', border: '1px solid #f8f9fa', boxShadow: '0 4px 20px -2px rgba(0, 0, 0, 0.05)', padding: '12px 16px' }}
+                labelStyle={{ fontWeight: '600', color: '#1e293b', marginBottom: '8px' }}
+                itemStyle={{ fontSize: '13px', padding: '2px 0' }}
               />
-              <Legend verticalAlign="top" align="right" iconType="circle" wrapperStyle={{ paddingBottom: '20px', fontSize: '12px' }} />
-              
-              <Bar dataKey="lulus_calculated" name="Lulus" stackId="a" fill="#2ecc71" radius={[0, 0, 0, 0]} barSize={35} />
-              <Bar dataKey="culled_calculated" name="Culled (Gagal Training)" stackId="a" fill="#e74c3c" radius={[0, 0, 0, 0]} barSize={35} />
-              <Bar dataKey="tidak_lulus_calculated" name="Tidak Lulus (Evaluasi)" stackId="a" fill="#95a5a6" radius={[6, 6, 0, 0]} barSize={35} />
+              <Legend
+                verticalAlign="top"
+                align="right"
+                iconType="circle"
+                iconSize={8}
+                wrapperStyle={{ paddingBottom: '24px', fontSize: '13px', color: '#64748b' }}
+              />
+
+              <Bar dataKey="lulus_calculated" name="Lulus" stackId="a" fill="#2EAD67" radius={[0, 0, 4, 4]} barSize={28} />
+              <Bar dataKey="culled_calculated" name="Culled" stackId="a" fill="#F0A23A" radius={[0, 0, 0, 0]} barSize={28} />
+              <Bar dataKey="tidak_lulus_calculated" name="Tidak Lulus Evaluasi" stackId="a" fill="#A7B0B0" radius={[4, 4, 0, 0]} barSize={28} />
             </BarChart>
           </ResponsiveContainer>
         ) : (

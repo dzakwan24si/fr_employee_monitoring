@@ -73,7 +73,7 @@ export function AnalisaTab({ data = [], summaryData = [], culledData = [] }) {
     <div className="flex flex-col gap-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
 
       {/* Summary Cards Row */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
         {summaryCards.map((card, idx) => (
           <div key={idx} className="bg-[#2c8f42] rounded-2xl p-1 shadow-sm overflow-hidden flex flex-col h-full hover:scale-105 transition-transform cursor-default">
             <div className="bg-[#2c8f42] text-white text-center p-3 text-xs font-bold leading-tight flex-1 flex items-center justify-center">
