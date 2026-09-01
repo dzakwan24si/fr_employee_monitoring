@@ -3,7 +3,10 @@ import { X, Save, Loader2 } from "lucide-react";
 
 const initialFormState = {
   angkatan: "",
-  "Jumlah Awal": ""
+  "Jumlah Awal": "",
+  Resign_In_Class: 0,
+  Resign_OJT: 0,
+  tidak_lulus: 0
 };
 
 export function AngkatanFormModal({ isOpen, onClose, onSubmit, initialData }) {
@@ -22,10 +25,13 @@ export function AngkatanFormModal({ isOpen, onClose, onSubmit, initialData }) {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
+    const numericFields = ["Jumlah Awal", "Resign_In_Class", "Resign_OJT", "tidak_lulus"];
+
     let finalValue = value;
-    if (name === "Jumlah Awal") {
+    if (numericFields.includes(name)) {
       finalValue = value === "" ? "" : Number(value);
     }
+
     setFormData((prev) => ({ ...prev, [name]: finalValue }));
   };
 
@@ -33,11 +39,19 @@ export function AngkatanFormModal({ isOpen, onClose, onSubmit, initialData }) {
     e.preventDefault();
     setIsSubmitting(true);
     try {
-      if (!formData.angkatan || !formData["Jumlah Awal"]) {
-        throw new Error("Semua kolom wajib diisi!");
+      if (!formData.angkatan || formData["Jumlah Awal"] === "" || formData["Jumlah Awal"] === null || formData["Jumlah Awal"] === undefined) {
+        throw new Error("Nama angkatan dan Jumlah Awal wajib diisi!");
       }
-      
-      await onSubmit(formData);
+
+      const normalized = {
+        ...formData,
+        "Jumlah Awal": Number(formData["Jumlah Awal"] ?? 0),
+        Resign_In_Class: Number(formData.Resign_In_Class ?? 0),
+        Resign_OJT: Number(formData.Resign_OJT ?? 0),
+        tidak_lulus: Number(formData.tidak_lulus ?? 0)
+      };
+
+      await onSubmit(normalized);
       onClose();
     } catch (error) {
       console.error("Error submitting form:", error);
@@ -93,16 +107,53 @@ export function AngkatanFormModal({ isOpen, onClose, onSubmit, initialData }) {
             <input
               type="number"
               name="Jumlah Awal"
-              value={formData["Jumlah Awal"] || ""}
+              value={formData["Jumlah Awal"] ?? ""}
               onChange={handleChange}
               placeholder="Cth: 35"
               required
               className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[#2c8f42] outline-none transition-all"
             />
-            <p className="text-[10px] text-blue-500 mt-2 font-medium bg-blue-50 p-2 rounded-lg">
-              ℹ️ Nilai Lulus, Tidak Lulus, dan Culled akan dihitung otomatis oleh sistem berdasarkan data aktif.
-            </p>
           </div>
+
+          <div className="grid grid-cols-3 gap-3">
+            <div>
+              <label className="block text-xs font-semibold text-gray-600 mb-1">Resign In Class</label>
+              <input
+                type="number"
+                min="0"
+                name="Resign_In_Class"
+                value={formData.Resign_In_Class ?? 0}
+                onChange={handleChange}
+                className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[#2c8f42] outline-none transition-all"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-semibold text-gray-600 mb-1">Resign OJT</label>
+              <input
+                type="number"
+                min="0"
+                name="Resign_OJT"
+                value={formData.Resign_OJT ?? 0}
+                onChange={handleChange}
+                className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[#2c8f42] outline-none transition-all"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-semibold text-gray-600 mb-1">Tidak Lulus</label>
+              <input
+                type="number"
+                min="0"
+                name="tidak_lulus"
+                value={formData.tidak_lulus ?? 0}
+                onChange={handleChange}
+                className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[#2c8f42] outline-none transition-all"
+              />
+            </div>
+          </div>
+
+          <p className="text-[10px] text-blue-500 mt-2 font-medium bg-blue-50 p-2 rounded-lg">
+            ℹ️ Lulus dihitung otomatis dengan rumus: Jumlah Awal - Resign In Class - Resign OJT - Tidak Lulus.
+          </p>
 
           {/* Form Actions */}
           <div className="pt-6 border-t border-gray-100 flex justify-end gap-3 mt-4">

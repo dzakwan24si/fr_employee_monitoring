@@ -55,6 +55,14 @@ export function useEmployees(statusFilter = null) {
 
   useEffect(() => {
     fetchEmployees();
+
+    const interval = window.setInterval(() => {
+      fetchEmployees();
+    }, 10000);
+
+    return () => {
+      window.clearInterval(interval);
+    };
   }, [filterKey]);
 
   const addEmployee = async (newEmployee) => {

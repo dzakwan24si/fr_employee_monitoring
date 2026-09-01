@@ -6,9 +6,17 @@ export function TerminateTab({ data = [] }) {
 
   // Filter resign staff only
   const resignStaff = data.filter(emp => emp.STATUS === 'Terminate' || emp.STATUS === 'Resign' || emp.STATUS === 'Culled');
-  
-  const isAlumni = (kategori) => kategori?.trim().toLowerCase() === 'alumni';
-  const resignLulusan = resignStaff.filter(emp => isAlumni(emp.KATEGORI));
+
+  const hasAngkatanValue = (emp) => {
+    const value = String(emp["ANGKATAN FR ACADEMY"] ?? emp.ANGKATAN ?? emp.angkatan ?? emp["ANGKATAN"] ?? "").trim();
+    if (!value || value === '-' || value.toLowerCase() === 'null' || value.toLowerCase() === 'n/a' || value.toLowerCase() === 'na') {
+      return false;
+    }
+    return true;
+  };
+
+  const isAlumni = (emp) => hasAngkatanValue(emp);
+  const resignLulusan = resignStaff.filter(emp => isAlumni(emp));
 
   // --- Aggregation Helpers ---
   const aggregateByField = (dataset, fieldName) => {
@@ -126,7 +134,7 @@ export function TerminateTab({ data = [] }) {
   // 1. Resign Alumni Vs Non Alumni
   const dataAlumniVsNonAlumni = [currentYear - 2, currentYear - 1, currentYear].map(year => {
      const resignedThatYear = resignStaff.filter(emp => Number(emp["TAHUN TERMINATE"]) === year);
-     const alumni = resignedThatYear.filter(emp => isAlumni(emp.KATEGORI)).length;
+     const alumni = resignedThatYear.filter(emp => isAlumni(emp)).length;
      const nonAlumni = resignedThatYear.length - alumni;
      return { name: String(year), alumni, nonAlumni };
   });

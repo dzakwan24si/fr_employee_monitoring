@@ -59,7 +59,7 @@ const normalizeBatchName = (name) => {
   return n.replace(/\s+/g, ' ').toUpperCase();
 };
 
-function TrainingKpi({ data = [], summaryData = [] }) {
+function TrainingKpi({ data = [], summaryData = [], culledData = [] }) {
   const getProgramYear = (value) => {
     const match = String(value || "").match(/(?:19|20)\d{2}/);
     return match ? Number(match[0]) : null;
@@ -71,13 +71,17 @@ function TrainingKpi({ data = [], summaryData = [] }) {
       const year = getProgramYear(rawYear);
       const total = Number(row["Jumlah Awal"] ?? row.jumlah_awal ?? row.total ?? row.Total ?? 0) || 0;
       const lulus = Number(row.lulus_calculated ?? row.lulus ?? row.Lulus ?? 0) || 0;
-      const tidakLulus = Number(row.tidak_lulus_calculated ?? row.tidak_lulus ?? row["Tidak Lulus"] ?? row.tidakLulus ?? 0) || 0;
+      const tidakLulus = Number(row.tidak_lulus ?? row.tidakLulus ?? row.tidak_lulus_calculated ?? row["Tidak Lulus"] ?? 0) || 0;
+      const resignInClass = Number(row.Resign_In_Class ?? row.resign_in_class ?? row.resignInClass ?? row.resign_in_class_calculated ?? 0) || 0;
+      const resignOjt = Number(row.Resign_OJT ?? row.resign_ojt ?? row.resignOJT ?? row.resign_ojt_calculated ?? 0) || 0;
 
       return {
         year,
         total,
         lulus,
         tidakLulus,
+        resignInClass,
+        resignOjt,
       };
     })
     .filter((row) => row.year !== null);
@@ -107,12 +111,12 @@ function TrainingKpi({ data = [], summaryData = [] }) {
     const start = latestProgramYear - years;
     const summaryFiltered = summaryRows.filter((row) => row.year >= start && row.year <= latestProgramYear);
     const employeeFiltered = employeeRows.filter((row) => row.year >= start && row.year <= latestProgramYear);
-
+    
     const total = summaryFiltered.reduce((sum, row) => sum + row.total, 0);
     const lulus = summaryFiltered.reduce((sum, row) => sum + row.lulus, 0);
     const tidakLulus = summaryFiltered.reduce((sum, row) => sum + row.tidakLulus, 0);
-    const resignInClass = employeeFiltered.filter((row) => row.isResign && row.months < 3).length;
-    const resignOjt = employeeFiltered.filter((row) => row.isResign && row.months >= 3).length;
+    const resignInClass = summaryFiltered.reduce((sum, row) => sum + row.resignInClass, 0);
+    const resignOjt = summaryFiltered.reduce((sum, row) => sum + row.resignOjt, 0);
 
     return {
       period: `${years} tahun terakhir`,
@@ -162,7 +166,7 @@ function TrainingKpi({ data = [], summaryData = [] }) {
   );
 }
 
-export function RegionalKpi({ data = [], summaryData = [], afdelingData = [], onUpdateAfdeling }) {
+export function RegionalKpi({ data = [], summaryData = [], afdelingData = [], culledData = [], onUpdateAfdeling }) {
   const [isAfdelingModalOpen, setIsAfdelingModalOpen] = useState(false);
 
   const validBatchNames = new Set(
@@ -396,7 +400,7 @@ export function RegionalKpi({ data = [], summaryData = [], afdelingData = [], on
       )}
 
       <div className="p-6 pb-0">
-        <TrainingKpi data={data} summaryData={summaryData} />
+        <TrainingKpi data={data} summaryData={summaryData} culledData={culledData} />
         {renderRegionTable("Persentasi lulusan Eksis", eksisRows, "text-green-700")}
         {renderRegionTable("Persentasi lulusan Resign", resignRows, "text-red-600")}
       </div>

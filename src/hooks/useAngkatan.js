@@ -10,38 +10,30 @@ export function useAngkatan() {
     setLoading(true);
     setError(null);
     try {
-      // 1. Fetch raw angkatan data
       const { data: angkatanData, error: angkatanError } = await supabase
         .from('angkatan')
         .select('*')
         .order('id_angkatan', { ascending: false });
-        
+
       if (angkatanError) throw angkatanError;
 
-      // 2. Fetch culled data
-      const { data: culledData } = await supabase.from('culled').select('id_angkatan, kategori_status, alasan');
+      const toNumber = (value) => {
+        const parsed = Number(value ?? 0);
+        return Number.isFinite(parsed) && parsed >= 0 ? parsed : 0;
+      };
 
-      // 3. Aggregate Mathematically
-      // Rumus User: Lulus = Jumlah Awal - (Culled + Tidak Lulus)
       const aggregatedData = (angkatanData || []).map(item => {
-        // Filter culled data for this angkatan
-        const relatedCulled = (culledData || []).filter(c => c.id_angkatan === item.id_angkatan);
-        
-        // Count each category
-        const totalTidakLulus = relatedCulled.filter(c => c.kategori_status === 'Tidak Lulus').length;
-        const totalCulled = relatedCulled.filter(c => c.kategori_status !== 'Tidak Lulus').length; // Default to Culled if null
-
-        const resignInClass = relatedCulled.filter(c => c.kategori_status !== 'Tidak Lulus' && (c.alasan || '').toLowerCase().includes('in class')).length;
-        const resignOjt = relatedCulled.filter(c => c.kategori_status !== 'Tidak Lulus' && (c.alasan || '').toLowerCase().includes('ojt')).length;
-
-        // Calculate Lulus
-        const totalLulus = item['Jumlah Awal'] - totalCulled - totalTidakLulus;
+        const jumlahAwal = toNumber(item['Jumlah Awal']);
+        const resignInClass = toNumber(item.Resign_In_Class ?? item.resign_in_class ?? item.resignInClass ?? 0);
+        const resignOjt = toNumber(item.Resign_OJT ?? item.resign_ojt ?? item.resignOJT ?? 0);
+        const tidakLulus = toNumber(item.tidak_lulus ?? item.tidakLulus ?? item['Tidak Lulus'] ?? 0);
+        const totalLulus = Math.max(jumlahAwal - resignInClass - resignOjt - tidakLulus, 0);
 
         return {
           ...item,
-          lulus_calculated: totalLulus > 0 ? totalLulus : 0,
-          culled_calculated: totalCulled,
-          tidak_lulus_calculated: totalTidakLulus,
+          lulus_calculated: totalLulus,
+          culled_calculated: resignInClass + resignOjt,
+          tidak_lulus_calculated: tidakLulus,
           resign_in_class_calculated: resignInClass,
           resign_ojt_calculated: resignOjt
         };
@@ -59,6 +51,14 @@ export function useAngkatan() {
 
   useEffect(() => {
     fetchAngkatan();
+
+    const interval = window.setInterval(() => {
+      fetchAngkatan();
+    }, 10000);
+
+    return () => {
+      window.clearInterval(interval);
+    };
   }, []);
 
   const addAngkatan = async (newAngkatan) => {
@@ -67,53 +67,69 @@ export function useAngkatan() {
       nextId = Math.max(...data.map(item => item.id_angkatan || 0)) + 1;
     }
 
+    const jumlahAwal = Number(newAngkatan['Jumlah Awal'] ?? 0) || 0;
+    const resignInClass = Number(newAngkatan.Resign_In_Class ?? 0) || 0;
+    const resignOjt = Number(newAngkatan.Resign_OJT ?? 0) || 0;
+    const tidakLulus = Number(newAngkatan.tidak_lulus ?? 0) || 0;
+
     const { data: inserted, error } = await supabase
       .from('angkatan')
       .insert([{
         id_angkatan: nextId,
         angkatan: newAngkatan.angkatan,
-        'Jumlah Awal': newAngkatan['Jumlah Awal'],
-        lulus: newAngkatan['Jumlah Awal'] // Satisfy NOT NULL constraint
+        'Jumlah Awal': jumlahAwal,
+        Resign_In_Class: resignInClass,
+        Resign_OJT: resignOjt,
+        tidak_lulus: tidakLulus,
+        lulus: Math.max(jumlahAwal - resignInClass - resignOjt - tidakLulus, 0)
       }])
       .select();
-    
+
     if (error) throw error;
-    
-    // Format before adding to state
+
     const formatted = {
       ...inserted[0],
-      lulus_calculated: inserted[0]['Jumlah Awal'],
-      culled_calculated: 0,
-      tidak_lulus_calculated: 0,
-      resign_in_class_calculated: 0,
-      resign_ojt_calculated: 0
+      lulus_calculated: Math.max((Number(inserted[0]['Jumlah Awal']) || 0) - (Number(inserted[0].Resign_In_Class) || 0) - (Number(inserted[0].Resign_OJT) || 0) - (Number(inserted[0].tidak_lulus) || 0), 0),
+      culled_calculated: (Number(inserted[0].Resign_In_Class) || 0) + (Number(inserted[0].Resign_OJT) || 0),
+      tidak_lulus_calculated: Number(inserted[0].tidak_lulus) || 0,
+      resign_in_class_calculated: Number(inserted[0].Resign_In_Class) || 0,
+      resign_ojt_calculated: Number(inserted[0].Resign_OJT) || 0
     };
     setData([formatted, ...data]);
     return formatted;
   };
 
   const updateAngkatan = async (id, updatedAngkatan) => {
+    const jumlahAwal = Number(updatedAngkatan['Jumlah Awal'] ?? 0) || 0;
+    const resignInClass = Number(updatedAngkatan.Resign_In_Class ?? 0) || 0;
+    const resignOjt = Number(updatedAngkatan.Resign_OJT ?? 0) || 0;
+    const tidakLulus = Number(updatedAngkatan.tidak_lulus ?? 0) || 0;
+
     const { data: updated, error } = await supabase
       .from('angkatan')
       .update({
         angkatan: updatedAngkatan.angkatan,
-        'Jumlah Awal': updatedAngkatan['Jumlah Awal']
+        'Jumlah Awal': jumlahAwal,
+        Resign_In_Class: resignInClass,
+        Resign_OJT: resignOjt,
+        tidak_lulus: tidakLulus,
+        lulus: Math.max(jumlahAwal - resignInClass - resignOjt - tidakLulus, 0)
       })
       .eq('id_angkatan', id)
       .select();
-      
+
     if (error) throw error;
-    
+
     setData(data.map(item => {
       if(item.id_angkatan === id) {
-        const newLulus = updated[0]['Jumlah Awal'] - item.culled_calculated - item.tidak_lulus_calculated;
+        const nextLulus = Math.max(jumlahAwal - resignInClass - resignOjt - tidakLulus, 0);
         return {
           ...updated[0],
-          lulus_calculated: newLulus > 0 ? newLulus : 0,
-          culled_calculated: item.culled_calculated,
-          tidak_lulus_calculated: item.tidak_lulus_calculated,
-          resign_in_class_calculated: item.resign_in_class_calculated,
-          resign_ojt_calculated: item.resign_ojt_calculated
+          lulus_calculated: nextLulus,
+          culled_calculated: resignInClass + resignOjt,
+          tidak_lulus_calculated: tidakLulus,
+          resign_in_class_calculated: resignInClass,
+          resign_ojt_calculated: resignOjt
         };
       }
       return item;
@@ -122,19 +138,11 @@ export function useAngkatan() {
   };
 
   const deleteAngkatan = async (id) => {
-    // Delete related culled entries first to prevent foreign key constraint violation
-    const { error: culledError } = await supabase
-      .from('culled')
-      .delete()
-      .eq('id_angkatan', id);
-      
-    if (culledError) throw culledError;
-
     const { error } = await supabase
       .from('angkatan')
       .delete()
       .eq('id_angkatan', id);
-      
+
     if (error) throw error;
     setData(data.filter(item => item.id_angkatan !== id));
   };

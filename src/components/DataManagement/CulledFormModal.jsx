@@ -5,6 +5,7 @@ const initialFormState = {
   nama: "",
   id_angkatan: "",
   kategori_status: "Culled",
+  Jenis_culled: "",
   alasan: "",
   fase_program: ""
 };
@@ -15,13 +16,21 @@ export function CulledFormModal({ isOpen, onClose, onSubmit, initialData, angkat
 
   useEffect(() => {
     if (initialData) {
+      const storedJenis = initialData.Jenis_culled || initialData.jenis_culled || initialData.jenisCulling || "";
       let fase = "";
-      const alasanLower = (initialData.alasan || "").toLowerCase();
-      if (alasanLower.includes("in class")) fase = "In Class";
-      else if (alasanLower.includes("ojt")) fase = "OJT";
+      const lowerJenis = String(storedJenis || "").toLowerCase();
+      if (lowerJenis.includes("ojt")) fase = "OJT";
+      else if (lowerJenis.includes("in_class") || lowerJenis.includes("in class") || lowerJenis.includes("in-class")) fase = "In Class";
+
+      if (!fase) {
+        const alasanLower = (initialData.alasan || "").toLowerCase();
+        if (alasanLower.includes("in class")) fase = "In Class";
+        else if (alasanLower.includes("ojt")) fase = "OJT";
+      }
 
       setFormData({
         ...initialData,
+        Jenis_culled: storedJenis || (fase === "OJT" ? "Resign_OJT" : fase === "In Class" ? "Resign_In_Class" : ""),
         fase_program: fase
       });
     } else {
@@ -49,8 +58,15 @@ export function CulledFormModal({ isOpen, onClose, onSubmit, initialData, angkat
       if (!formData.nama || !formData.id_angkatan || !formData.kategori_status) {
         throw new Error("Nama, Angkatan, dan Kategori Status wajib diisi!");
       }
-      
-      await onSubmit(formData);
+
+      const finalJenisCulled = formData.Jenis_culled ||
+        (formData.fase_program === "OJT" ? "Resign_OJT" : "Resign_In_Class");
+
+      await onSubmit({
+        ...formData,
+        Jenis_culled: finalJenisCulled,
+        fase_program: finalJenisCulled === "Resign_OJT" ? "OJT" : "In Class"
+      });
       onClose();
     } catch (error) {
       console.error("Error submitting form:", error);
@@ -150,18 +166,18 @@ export function CulledFormModal({ isOpen, onClose, onSubmit, initialData, angkat
           {formData.kategori_status === "Culled" && (
             <div>
               <label className="block text-xs font-semibold text-gray-600 mb-1">
-                Tahapan Culling/Resign <span className="text-red-500">*</span>
+                Jenis Culling <span className="text-red-500">*</span>
               </label>
               <select
-                name="fase_program"
-                value={formData.fase_program || ""}
+                name="Jenis_culled"
+                value={formData.Jenis_culled || ""}
                 onChange={handleChange}
                 required
                 className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-[#2c8f42] outline-none transition-all"
               >
-                <option value="">-- Pilih Tahapan --</option>
-                <option value="In Class">Resign / Culling In Class</option>
-                <option value="OJT">Resign / Culling OJT</option>
+                <option value="">-- Pilih Jenis Culling --</option>
+                <option value="Resign_In_Class">Resign In Class</option>
+                <option value="Resign_OJT">Resign OJT</option>
               </select>
             </div>
           )}

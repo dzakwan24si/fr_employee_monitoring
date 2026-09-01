@@ -113,6 +113,7 @@ export function CulledTable({
               <th className="py-4 px-6 text-xs font-bold text-gray-500 uppercase tracking-wider">Nama Lengkap</th>
               <th className="py-4 px-6 text-xs font-bold text-gray-500 uppercase tracking-wider">Angkatan</th>
               <th className="py-4 px-6 text-xs font-bold text-gray-500 uppercase tracking-wider">Status</th>
+              <th className="py-4 px-6 text-xs font-bold text-gray-500 uppercase tracking-wider">Jenis_culled</th>
               <th className="py-4 px-6 text-xs font-bold text-gray-500 uppercase tracking-wider">Alasan Detail</th>
               <th className="py-4 px-6 text-xs font-bold text-gray-500 uppercase tracking-wider text-center">Aksi</th>
             </tr>
@@ -120,7 +121,7 @@ export function CulledTable({
           <tbody className="divide-y divide-gray-50">
             {loading ? (
               <tr>
-                <td colSpan="6" className="py-12 text-center text-gray-500">
+                <td colSpan="7" className="py-12 text-center text-gray-500">
                   <div className="flex flex-col items-center justify-center">
                     <div className="w-8 h-8 border-4 border-[#2c8f42] border-t-transparent rounded-full animate-spin mb-3"></div>
                     <p>Memuat data dari database...</p>
@@ -147,6 +148,13 @@ export function CulledTable({
                     }`}>
                       {item.kategori_status || "Culled"}
                     </span>
+                  </td>
+                  <td className="py-4 px-6 text-sm text-gray-600 font-medium">
+                    {(() => {
+                      const jenis = item.Jenis_culled || item.jenis_culled || item.jenisCulling || "";
+                      if (!jenis) return "-";
+                      return jenis === "Resign_OJT" ? "Resign OJT" : jenis === "Resign_In_Class" ? "Resign In Class" : jenis;
+                    })()}
                   </td>
                   <td className="py-4 px-6 text-sm text-gray-600 font-medium">
                     {(item.alasan || "-").replace(/\[(In Class|OJT)\]\s*/ig, "")}
@@ -177,7 +185,7 @@ export function CulledTable({
               ))
             ) : (
               <tr>
-                <td colSpan="6" className="py-12 text-center text-gray-500">
+                <td colSpan="7" className="py-12 text-center text-gray-500">
                   <div className="flex flex-col items-center justify-center">
                     <Search className="h-8 w-8 text-gray-300 mb-3" />
                     <p>Tidak ada data ditemukan.</p>

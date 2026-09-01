@@ -39,6 +39,14 @@ export function useCulled() {
 
   useEffect(() => {
     fetchCulled();
+
+    const interval = window.setInterval(() => {
+      fetchCulled();
+    }, 10000);
+
+    return () => {
+      window.clearInterval(interval);
+    };
   }, []);
 
   const addCulled = async (newCulled) => {
