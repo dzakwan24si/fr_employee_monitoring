@@ -1,3 +1,7 @@
+import { useState } from "react";
+import { Edit2 } from "lucide-react";
+import { AfdelingFormModal } from "./AfdelingFormModal";
+
 const REGIONS = ["Riau", "Kalbar", "Kubar", "Corp"];
 
 const normalizeRegion = (value = "") => {
@@ -158,7 +162,9 @@ function TrainingKpi({ data = [], summaryData = [] }) {
   );
 }
 
-export function RegionalKpi({ data = [], summaryData = [] }) {
+export function RegionalKpi({ data = [], summaryData = [], afdelingData = [], onUpdateAfdeling }) {
+  const [isAfdelingModalOpen, setIsAfdelingModalOpen] = useState(false);
+
   const validBatchNames = new Set(
     (summaryData || [])
       .map(row => normalizeBatchName(row.angkatan ?? row.Angkatan ?? row.program ?? ""))
@@ -187,38 +193,55 @@ export function RegionalKpi({ data = [], summaryData = [] }) {
     if (isGraduate(employee)) regionStats.graduates += 1;
   });
 
-  const dummyAfdeling = {
+  const defaultAfdeling = {
     Riau: 166,
     Kalbar: 99,
     Kubar: 37,
     Corp: 0
   };
 
+  const hasAfdelingData = Array.isArray(afdelingData) && afdelingData.length > 0;
+  const afdelingMap = hasAfdelingData
+    ? afdelingData.reduce((acc, item) => {
+        const reg = normalizeRegion(item.Region || item.region || item.REGION);
+        if (reg) {
+          acc[reg] = (acc[reg] || 0) + (Number(item.Total ?? item.total ?? 0) || 0);
+        }
+        return acc;
+      }, { Riau: 0, Kalbar: 0, Kubar: 0, Corp: 0 })
+    : defaultAfdeling;
+
+  const totalAfdeling = hasAfdelingData
+    ? Object.values(afdelingMap).reduce((sum, val) => sum + val, 0)
+    : 302;
+
   const rows = REGIONS.map((region) => {
     const regionStats = stats[region];
-    const total = regionStats.active + regionStats.resigned;
+    const activeTotal = regionStats.active;
+    const resignedTotal = regionStats.resigned;
+    const total = activeTotal + resignedTotal;
+    const departments = afdelingMap[region] || 0;
     return {
       region,
-      allocation: total, // Set allocation to strictly active + resigned
-      departments: dummyAfdeling[region] || 0,
-      existing: total ? Math.round((regionStats.active / total) * 100) : 0,
-      resigned: total ? Math.round((regionStats.resigned / total) * 100) : 0,
-      graduateFill: total ? Math.round((regionStats.graduates / total) * 100) : 0,
+      allocation: activeTotal + resignedTotal, // Total Aktif (per region) + Total Resign (per region)
+      departments,
+      existing: total ? Math.round((activeTotal / total) * 100) : 0,
+      resigned: total ? Math.round((resignedTotal / total) * 100) : 0,
+      graduateFill: departments ? Math.round((activeTotal / departments) * 100) : 0,
     };
   });
 
   const totalActive = validEmployees.filter(isActive).length;
   const totalResigned = validEmployees.length - totalActive;
-  const totalAllocation = totalActive + totalResigned;
-  const totalGraduates = validEmployees.filter(isGraduate).length;
-  
+  const totalAllocation = totalActive + totalResigned; // Total Aktif (all region) + Total Resign (all region)
+
   const total = {
     region: "Total",
     allocation: totalAllocation,
-    departments: 302, // dummy total afdeling
+    departments: totalAfdeling,
     existing: totalAllocation ? Math.round((totalActive / totalAllocation) * 100) : 0,
     resigned: totalAllocation ? Math.round((totalResigned / totalAllocation) * 100) : 0,
-    graduateFill: totalAllocation ? Math.round((totalGraduates / totalAllocation) * 100) : 0,
+    graduateFill: totalAfdeling ? Math.round((totalActive / totalAfdeling) * 100) : 0,
   };
 
   const cells = [...rows, total];
@@ -325,11 +348,12 @@ export function RegionalKpi({ data = [], summaryData = [] }) {
      </div>
 
       <div className="overflow-x-auto border-b border-gray-100">
-        <table className="w-full min-w-[720px] border-collapse text-sm">
+        <table className="w-full min-w-[760px] border-collapse text-sm">
           <thead>
             <tr className="bg-[#244f6d] text-white">
               <th className="text-left px-5 py-3 font-bold">Indikator</th>
               {cells.map((cell) => <th key={cell.region} className="px-4 py-3 font-bold text-center">{cell.region}</th>)}
+              {onUpdateAfdeling && <th className="px-4 py-3 font-bold text-center">Aksi</th>}
             </tr>
           </thead>
           <tbody>
@@ -340,11 +364,36 @@ export function RegionalKpi({ data = [], summaryData = [] }) {
                   const value = metric.key === "status" ? cell : cell[metric.key];
                   return <td key={`${metric.label}-${cell.region}`} className="px-4 py-3 text-center font-bold text-gray-800">{metric.format(value)}</td>;
                 })}
+                {onUpdateAfdeling && (
+                  <td className="px-4 py-3 text-center">
+                    {metric.key === "departments" ? (
+                      <button
+                        onClick={() => setIsAfdelingModalOpen(true)}
+                        className="inline-flex items-center gap-1.5 px-3 py-1 bg-[#2c8f42] hover:bg-[#237335] text-white rounded-lg text-xs font-bold transition-all shadow-sm shadow-green-900/10 cursor-pointer"
+                        title="Edit Total Afdeling per Region"
+                      >
+                        <Edit2 size={13} />
+                        Edit
+                      </button>
+                    ) : (
+                      <span className="text-gray-300 font-bold">-</span>
+                    )}
+                  </td>
+                )}
               </tr>
             ))}
           </tbody>
         </table>
       </div>
+
+      {onUpdateAfdeling && (
+        <AfdelingFormModal
+          isOpen={isAfdelingModalOpen}
+          onClose={() => setIsAfdelingModalOpen(false)}
+          onSubmit={onUpdateAfdeling}
+          initialData={afdelingMap}
+        />
+      )}
 
       <div className="p-6 pb-0">
         <TrainingKpi data={data} summaryData={summaryData} />

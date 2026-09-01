@@ -6,6 +6,7 @@ import { RegionalKpi } from "../components/DataManagement/RegionalKpi";
 import { BarChart3, Users, UserMinus, Loader2 } from "lucide-react";
 import { useEmployees } from "../hooks/useEmployees";
 import { useAngkatan } from "../hooks/useAngkatan";
+import { useAfdeling } from "../hooks/useAfdeling";
 
 export default function Dashboard() {
   const [activeTab, setActiveTab] = useState("analisa");
@@ -13,6 +14,7 @@ export default function Dashboard() {
   // Fetch ALL employees for the dashboard aggregations
   const { data, loading, error } = useEmployees();
   const { data: angkatanData, loading: angkatanLoading, error: angkatanError } = useAngkatan();
+  const { data: afdelingData, loading: afdelingLoading, error: afdelingError, updateAfdeling } = useAfdeling();
 
   const tabs = [
     { id: "analisa", label: "Analisa", icon: <BarChart3 size={18} /> },
@@ -50,21 +52,21 @@ export default function Dashboard() {
 
       {/* Tab Content Area - Scrollable */}
       <div className="flex-1 overflow-y-auto pr-2 pb-8 custom-scrollbar">
-        {loading || angkatanLoading ? (
+        {loading || angkatanLoading || afdelingLoading ? (
            <div className="flex flex-col items-center justify-center h-64 text-gray-400 gap-3">
              <Loader2 size={32} className="animate-spin text-[#2c8f42]" />
              <p className="text-sm font-bold">Memuat dan menghitung data analitik...</p>
            </div>
-        ) : error || angkatanError ? (
+        ) : error || angkatanError || afdelingError ? (
            <div className="p-6 bg-red-50 text-red-600 rounded-2xl border border-red-100">
-             Gagal memuat data: {error || angkatanError}
+             Gagal memuat data: {error || angkatanError || afdelingError}
            </div>
         ) : (
           <>
             {activeTab === "analisa" && (
               <>
                 <AnalisaTab data={data} summaryData={angkatanData} />
-                <RegionalKpi data={data} summaryData={angkatanData} />
+                <RegionalKpi data={data} summaryData={angkatanData} afdelingData={afdelingData} onUpdateAfdeling={updateAfdeling} />
               </>
             )}
             {activeTab === "eksis" && <EksisTab data={data} />}
