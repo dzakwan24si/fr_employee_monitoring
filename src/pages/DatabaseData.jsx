@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useEmployees } from "../hooks/useEmployees";
 import { Search, Database, ChevronLeft, ChevronRight, Plus, Edit2, Trash2 } from "lucide-react";
-import { DatabaseFormModal } from "../components/DataManagement/DatabaseFormModal";
+import { EmployeeFormModal } from "../components/DataManagement/EmployeeFormModal";
 
 export default function DatabaseData() {
   const { data, loading, error, addEmployee, updateEmployee, deleteEmployee } = useEmployees();
@@ -73,7 +73,6 @@ export default function DatabaseData() {
     const matchesSearch = (
       (item.NAMA?.toLowerCase() || "").includes(searchLower) ||
       (item.NIK?.toLowerCase() || "").includes(searchLower) ||
-      (item.NRP?.toLowerCase() || "").includes(searchLower) ||
       (item["PT TERAKHIR"]?.toLowerCase() || "").includes(searchLower) ||
       (item.STATUS?.toLowerCase() || "").includes(searchLower) ||
       (item.KATEGORI?.toLowerCase() || "").includes(searchLower)
@@ -188,7 +187,7 @@ export default function DatabaseData() {
         <table className="w-full text-left border-collapse whitespace-nowrap">
           <thead>
             <tr className="bg-gray-50/80 text-gray-500 text-[11px] font-bold uppercase tracking-wider sticky top-0 z-10 backdrop-blur-sm">
-              <th className="px-6 py-4 border-b border-gray-100">NIK / NRP</th>
+              <th className="px-6 py-4 border-b border-gray-100">NIK</th>
               <th className="px-6 py-4 border-b border-gray-100">NAMA</th>
               <th className="px-6 py-4 border-b border-gray-100">JOIN DATE</th>
               <th className="px-6 py-4 border-b border-gray-100">JABATAN</th>
@@ -220,7 +219,7 @@ export default function DatabaseData() {
             {paginatedData.length > 0 ? (
               paginatedData.map((item, index) => (
                 <tr key={index} className="border-b border-gray-50 hover:bg-[#f0f9f3]/40 transition-colors group">
-                  <td className="px-6 py-4 text-gray-600 font-medium">{item.NIK || item.NRP || "-"}</td>
+                  <td className="px-6 py-4 text-gray-600 font-medium">{item.NIK || "-"}</td>
                   <td className="px-6 py-4 text-gray-800 font-semibold">{item.NAMA || "-"}</td>
                   <td className="px-6 py-4 text-gray-600">{item["JOIN DATE"] || "-"}</td>
                   <td className="px-6 py-4 text-gray-600">{item.JABATAN || "-"}</td>
@@ -340,7 +339,7 @@ export default function DatabaseData() {
       </div>
 
       {/* Form Modal */}
-      <DatabaseFormModal
+      <EmployeeFormModal
         isOpen={isFormOpen}
         onClose={() => setIsFormOpen(false)}
         onSubmit={handleSubmitForm}

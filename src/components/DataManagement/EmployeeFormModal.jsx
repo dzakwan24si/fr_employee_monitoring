@@ -144,7 +144,7 @@ export function EmployeeFormModal({ isOpen, onClose, onSubmit, initialData }) {
                 1. Data Utama
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {renderInput("NIK", "NIK", "text", true)}
+                {renderInput("NIK", "NIK", "text", false)}
                 {renderInput("Nama Lengkap", "NAMA", "text", true)}
                 {renderInput("Join Date", "JOIN DATE", "date")}
                 {renderSelect("Jabatan", "JABATAN", ["Asisten Kebun", "Asisten Bibitan", "Asisten GIS", "Asisten Land Clearing", "Asisten Tanam dan Sisip", "Asisten Tissue Culture", "Askep Kebun", "L&D Officer", "Manager Kebun", "Reseacrh Officer", "Lainnya"])}
