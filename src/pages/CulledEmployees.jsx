@@ -49,10 +49,11 @@ export default function CulledEmployees() {
       finalAlasan = `[${formData.fase_program}] ${finalAlasan}`.trim();
     }
 
-    const payload = { 
+    const payload = {
       nama: formData.nama,
       id_angkatan: formData.id_angkatan,
       kategori_status: formData.kategori_status,
+      Jenis_culled: formData.Jenis_culled || (formData.fase_program === "OJT" ? "Resign_OJT" : "Resign_In_Class"),
       alasan: finalAlasan
     };
 

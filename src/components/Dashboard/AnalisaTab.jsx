@@ -1,7 +1,7 @@
 import { PlacementChart } from "./PlacementChart";
 import { TurnoverChart } from "./TurnoverChart";
 
-export function AnalisaTab({ data = [], summaryData = [] }) {
+export function AnalisaTab({ data = [], summaryData = [], culledData = [] }) {
   const toNumber = (value) => {
     const parsed = Number(value ?? 0);
     return Number.isFinite(parsed) ? parsed : 0;
@@ -10,17 +10,22 @@ export function AnalisaTab({ data = [], summaryData = [] }) {
   const activeStaff = data.filter(emp => emp.STATUS === 'Eksis' || emp.STATUS === 'Aktif');
   const resignStaff = data.filter(emp => emp.STATUS === 'Terminate' || emp.STATUS === 'Resign' || emp.STATUS === 'Culled');
 
-  const isAlumni = (kategori) => kategori?.trim().toLowerCase() === 'alumni';
-  const isNonAlumni = (kategori) => {
-    const val = kategori?.trim().toLowerCase();
-    return val === 'non-alumni' || val === 'non alumni';
+  const hasAngkatanValue = (emp) => {
+    const value = String(emp["ANGKATAN FR ACADEMY"] ?? emp.ANGKATAN ?? emp.angkatan ?? emp["ANGKATAN"] ?? "").trim();
+    if (!value || value === '-' || value.toLowerCase() === 'null' || value.toLowerCase() === 'n/a' || value.toLowerCase() === 'na') {
+      return false;
+    }
+    return true;
   };
 
-  const lulusanAktif = activeStaff.filter(emp => isAlumni(emp.KATEGORI));
-  const rekrutAktif = activeStaff.filter(emp => isNonAlumni(emp.KATEGORI));
+  const isAlumni = (emp) => hasAngkatanValue(emp);
+  const isNonAlumni = (emp) => !hasAngkatanValue(emp);
 
-  const lulusanResign = resignStaff.filter(emp => isAlumni(emp.KATEGORI));
-  const rekrutResign = resignStaff.filter(emp => isNonAlumni(emp.KATEGORI));
+  const lulusanAktif = activeStaff.filter(emp => isAlumni(emp));
+  const rekrutAktif = activeStaff.filter(emp => isNonAlumni(emp));
+
+  const lulusanResign = resignStaff.filter(emp => isAlumni(emp));
+  const rekrutResign = resignStaff.filter(emp => isNonAlumni(emp));
 
   // The true active and resign counts MUST come directly from the employees table.
   // Using `summaryData` (from Angkatan) is incorrect here because "Lulus" from Angkatan includes people who later resigned.
@@ -164,12 +169,14 @@ export function AnalisaTab({ data = [], summaryData = [] }) {
               
                   const aktifStats = getRegionStats(activeForBatch);
                   const resignStats = getRegionStats(resignForBatch);
+                  
+                  const resignInClass = Number(angkatanItem.Resign_In_Class ?? angkatanItem.resign_in_class ?? angkatanItem.resignInClass ?? angkatanItem.resign_in_class_calculated ?? 0) || 0;
+                  const resignOjt = Number(angkatanItem.Resign_OJT ?? angkatanItem.resign_ojt ?? angkatanItem.resignOJT ?? angkatanItem.resign_ojt_calculated ?? 0) || 0;
+                  const totalResignIncludingCulled = resignStats.total + resignInClass + resignOjt;
               
-                  const selisih = jumlahAwal - (aktifStats.total + resignStats.total);
+                  const selisih = jumlahAwal - (aktifStats.total + totalResignIncludingCulled);
                   const pctExist = jumlahAwal > 0 ? Math.round((aktifStats.total / jumlahAwal) * 100) : 0;
               
-                  const resignInClass = angkatanItem.resign_in_class_calculated || 0;
-                  const resignOjt = angkatanItem.resign_ojt_calculated || 0;
                   const pctLulus = jumlahAwal > 0 ? ((lulus / jumlahAwal) * 100).toFixed(2) : 0;
 
                   return { 
@@ -184,7 +191,8 @@ export function AnalisaTab({ data = [], summaryData = [] }) {
                     tidakLulus,
                     resignInClass,
                     resignOjt,
-                    pctLulus
+                    pctLulus,
+                    totalResignIncludingCulled
                   };
                 });
 
@@ -213,6 +221,7 @@ export function AnalisaTab({ data = [], summaryData = [] }) {
                 const grandTotal = {
                   aktif: { riau: 0, kalbar: 0, kubar: 0, corp: 0, total: 0 },
                   resign: { riau: 0, kalbar: 0, kubar: 0, corp: 0, total: 0 },
+                  culled: 0,
                   selisih: 0,
                   totalJumlahAwal: 0,
                   totalLulus: 0,
@@ -226,6 +235,7 @@ export function AnalisaTab({ data = [], summaryData = [] }) {
                     grandTotal.aktif[key] += row.aktifStats[key];
                     grandTotal.resign[key] += row.resignStats[key];
                   });
+                  grandTotal.culled += (row.resignInClass || 0) + (row.resignOjt || 0);
                   grandTotal.selisih += row.selisih;
                   grandTotal.totalJumlahAwal += row.jumlahAwal;
                   grandTotal.totalLulus += row.lulus;
@@ -265,7 +275,7 @@ export function AnalisaTab({ data = [], summaryData = [] }) {
                         <td className="border border-gray-300 p-2">{row.resignStats.kalbar}</td>
                         <td className="border border-gray-300 p-2">{row.resignStats.kubar}</td>
                         <td className="border border-gray-300 p-2">{row.resignStats.corp}</td>
-                        <td className="border border-gray-300 p-2 font-bold bg-red-50/50">{row.resignStats.total}</td>
+                        <td className="border border-gray-300 p-2 font-bold bg-red-50/50" title={`Resign: ${row.resignStats.total}, Culled: ${row.culledForBatch}`}>{row.totalResignIncludingCulled}</td>
                         {/* Summary */}
                         <td className="border border-gray-300 p-2 font-bold">{row.selisih}</td>
                         <td className="border border-gray-300 p-2 font-bold text-[#0b5059]">{row.pctExist}%</td>
@@ -291,7 +301,7 @@ export function AnalisaTab({ data = [], summaryData = [] }) {
                       <td className="border border-gray-400 p-3">{grandTotal.resign.kalbar}</td>
                       <td className="border border-gray-400 p-3">{grandTotal.resign.kubar}</td>
                       <td className="border border-gray-400 p-3">{grandTotal.resign.corp}</td>
-                      <td className="border border-gray-400 p-3 bg-red-100">{grandTotal.resign.total}</td>
+                      <td className="border border-gray-400 p-3 bg-red-100" title={`Resign: ${grandTotal.resign.total}, Culled: ${grandTotal.culled}`}>{grandTotal.resign.total + grandTotal.culled}</td>
                       {/* Summary Total */}
                       <td className="border border-gray-400 p-3">{grandTotal.selisih}</td>
                       <td className="border border-gray-400 p-3 rounded-br-xl text-[#0b5059]">{grandPctExist}%</td>

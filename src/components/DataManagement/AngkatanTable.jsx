@@ -67,16 +67,17 @@ export function AngkatanTable({
               <th className="py-4 px-6 text-xs font-bold text-gray-500 uppercase tracking-wider">No</th>
               <th className="py-4 px-6 text-xs font-bold text-gray-500 uppercase tracking-wider">Nama Angkatan</th>
               <th className="py-4 px-6 text-xs font-bold text-gray-500 uppercase tracking-wider text-center">Jumlah Awal</th>
-              <th className="py-4 px-6 text-xs font-bold text-gray-500 uppercase tracking-wider text-center">Lulus (Aktif)</th>
-              <th className="py-4 px-6 text-xs font-bold text-gray-500 uppercase tracking-wider text-center">Culled</th>
-              <th className="py-4 px-6 text-xs font-bold text-gray-500 uppercase tracking-wider text-center">Tdk Lulus/Lainnya</th>
+              <th className="py-4 px-6 text-xs font-bold text-gray-500 uppercase tracking-wider text-center">Lulus</th>
+              <th className="py-4 px-6 text-xs font-bold text-gray-500 uppercase tracking-wider text-center">Resign In Class</th>
+              <th className="py-4 px-6 text-xs font-bold text-gray-500 uppercase tracking-wider text-center">Resign OJT</th>
+              <th className="py-4 px-6 text-xs font-bold text-gray-500 uppercase tracking-wider text-center">Tidak Lulus</th>
               <th className="py-4 px-6 text-xs font-bold text-gray-500 uppercase tracking-wider text-center">Aksi</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-50">
             {loading ? (
               <tr>
-                <td colSpan="7" className="py-12 text-center text-gray-500">
+                <td colSpan="8" className="py-12 text-center text-gray-500">
                   <div className="flex flex-col items-center justify-center">
                     <div className="w-8 h-8 border-4 border-[#2c8f42] border-t-transparent rounded-full animate-spin mb-3"></div>
                     <p>Memuat data dan mengkalkulasi jumlah...</p>
@@ -105,13 +106,19 @@ export function AngkatanTable({
                   <td className="py-4 px-6 text-center">
                     <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-red-50 text-red-700 rounded-lg text-sm font-bold border border-red-100">
                       <UserX size={14} className="text-red-600" />
-                      {item.culled_calculated}
+                      {item.resign_in_class_calculated ?? 0}
+                    </div>
+                  </td>
+                  <td className="py-4 px-6 text-center">
+                    <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-red-50 text-red-700 rounded-lg text-sm font-bold border border-red-100">
+                      <UserX size={14} className="text-red-600" />
+                      {item.resign_ojt_calculated ?? 0}
                     </div>
                   </td>
                   <td className="py-4 px-6 text-center">
                     <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-orange-50 text-orange-700 rounded-lg text-sm font-bold border border-orange-100">
                       <UserMinus size={14} className="text-orange-600" />
-                      {item.tidak_lulus_calculated}
+                      {item.tidak_lulus_calculated ?? 0}
                     </div>
                   </td>
                   <td className="py-4 px-6 text-center">
@@ -140,7 +147,7 @@ export function AngkatanTable({
               ))
             ) : (
               <tr>
-                <td colSpan="7" className="py-12 text-center text-gray-500">
+                <td colSpan="8" className="py-12 text-center text-gray-500">
                   <div className="flex flex-col items-center justify-center">
                     <Search className="h-8 w-8 text-gray-300 mb-3" />
                     <p>Tidak ada data angkatan ditemukan.</p>
