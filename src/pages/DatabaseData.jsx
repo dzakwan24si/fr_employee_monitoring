@@ -5,7 +5,7 @@ import { EmployeeFormModal } from "../components/DataManagement/EmployeeFormModa
 
 export default function DatabaseData() {
   const { data, loading, error, addEmployee, updateEmployee, deleteEmployee } = useEmployees();
-  
+
   // Table States
   const [searchTerm, setSearchTerm] = useState("");
   const [angkatanFilter, setAngkatanFilter] = useState("Semua");
@@ -58,11 +58,11 @@ export default function DatabaseData() {
   const angkatanOptions = Array.from(new Set(
     data.map(emp => (emp["ANGKATAN FR ACADEMY"] || "").trim()).filter(Boolean)
   )).sort();
-  
+
   const regionOptions = Array.from(new Set(
     data.map(emp => (emp["REGION TERAKHIR"] || "").trim()).filter(Boolean)
   )).sort();
-  
+
   const statusOptions = Array.from(new Set(
     data.map(emp => (emp["STATUS"] || "").trim()).filter(Boolean)
   )).sort();
@@ -77,7 +77,7 @@ export default function DatabaseData() {
       (item.STATUS?.toLowerCase() || "").includes(searchLower) ||
       (item.KATEGORI?.toLowerCase() || "").includes(searchLower)
     );
-    
+
     const matchesAngkatan = angkatanFilter === "Semua" ? true : (item["ANGKATAN FR ACADEMY"] || "").trim() === angkatanFilter;
     const matchesRegion = regionFilter === "Semua" ? true : (item["REGION TERAKHIR"] || "").trim() === regionFilter;
     const matchesStatus = statusFilter === "Semua" ? true : (item["STATUS"] || "").trim() === statusFilter;
@@ -98,7 +98,7 @@ export default function DatabaseData() {
 
   return (
     <div className="min-h-full h-auto bg-white rounded-[2rem] shadow-sm flex flex-col border border-gray-100/50">
-      
+
       {/* Table Header & Controls */}
       <div className="p-6 md:p-8 border-b border-gray-100 flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
@@ -161,7 +161,7 @@ export default function DatabaseData() {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
             <input
               type="text"
-              placeholder="Cari Nama, NRP, PT, Status..."
+              placeholder="Cari Nama, NIK, Status..."
               value={searchTerm}
               onChange={(e) => {
                 setSearchTerm(e.target.value);
@@ -232,13 +232,12 @@ export default function DatabaseData() {
                   <td className="px-6 py-4 text-gray-600">{item["LOKASI TERAKHIR"] || "-"}</td>
                   <td className="px-6 py-4 text-gray-600">{item["REGION TERAKHIR"] || "-"}</td>
                   <td className="px-6 py-4">
-                    <span className={`px-2.5 py-1 text-xs font-bold rounded-full ${
-                      item.STATUS?.toLowerCase() === 'aktif' ? 'bg-[#eaf4ec] text-[#2c8f42]' :
-                      item.STATUS?.toLowerCase() === 'terminate' ? 'bg-[#fdebe9] text-[#e35649]' :
-                      item.STATUS?.toLowerCase() === 'resign' ? 'bg-[#fff4e5] text-[#f29339]' :
-                      item.STATUS?.toLowerCase() === 'culled' ? 'bg-red-100 text-red-700' :
-                      'bg-gray-100 text-gray-600'
-                    }`}>
+                    <span className={`px-2.5 py-1 text-xs font-bold rounded-full ${item.STATUS?.toLowerCase() === 'aktif' ? 'bg-[#eaf4ec] text-[#2c8f42]' :
+                        item.STATUS?.toLowerCase() === 'terminate' ? 'bg-[#fdebe9] text-[#e35649]' :
+                          item.STATUS?.toLowerCase() === 'resign' ? 'bg-[#fff4e5] text-[#f29339]' :
+                            item.STATUS?.toLowerCase() === 'culled' ? 'bg-red-100 text-red-700' :
+                              'bg-gray-100 text-gray-600'
+                      }`}>
                       {item.STATUS || "-"}
                     </span>
                   </td>
@@ -256,14 +255,14 @@ export default function DatabaseData() {
                   <td className="px-6 py-4 text-gray-600">{item.MK || "-"}</td>
                   <td className="px-6 py-4 sticky right-0 bg-white group-hover:bg-[#f0f9f3] transition-colors shadow-[-10px_0_15px_-5px_rgba(0,0,0,0.05)]">
                     <div className="flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <button 
+                      <button
                         onClick={() => handleEdit(item)}
                         className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
                         title="Edit Data"
                       >
                         <Edit2 size={16} />
                       </button>
-                      <button 
+                      <button
                         onClick={() => handleDelete(item.ID_MONITORING)}
                         className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                         title="Hapus Data"
@@ -314,7 +313,7 @@ export default function DatabaseData() {
             Menampilkan <span className="font-bold text-gray-700">{filteredData.length > 0 ? startIndex + 1 : 0}</span> - <span className="font-bold text-gray-700">{Math.min(startIndex + rowsPerPage, filteredData.length)}</span> dari <span className="font-bold text-gray-700">{filteredData.length}</span> data
           </div>
         </div>
-        
+
         <div className="flex items-center gap-1 bg-white border border-gray-200 rounded-xl p-1 shadow-sm">
           <button
             onClick={() => handlePageChange(currentPage - 1)}
@@ -323,11 +322,11 @@ export default function DatabaseData() {
           >
             <ChevronLeft size={16} strokeWidth={2.5} />
           </button>
-          
+
           <div className="px-3 text-xs font-bold text-gray-700 min-w-[3rem] text-center">
             {currentPage} / {totalPages || 1}
           </div>
-          
+
           <button
             onClick={() => handlePageChange(currentPage + 1)}
             disabled={currentPage === totalPages || totalPages === 0}
