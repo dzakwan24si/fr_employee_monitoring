@@ -32,12 +32,12 @@ export default function Dashboard() {
         </div>
 
         {/* Tab Navigation */}
-        <div className="flex items-center gap-2 bg-white p-1.5 rounded-2xl shadow-sm w-fit border border-gray-100">
+        <div className="flex items-center gap-2 bg-white p-1.5 rounded-2xl shadow-sm w-max max-w-full overflow-x-auto border border-gray-100 custom-scrollbar">
           {tabs.map((tab) => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-bold transition-all duration-300 ${
+              className={`flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-bold transition-all duration-300 whitespace-nowrap shrink-0 ${
                 activeTab === tab.id
                   ? "bg-[#2c8f42] text-white shadow-md shadow-green-900/20"
                   : "text-gray-500 hover:text-gray-700 hover:bg-gray-50"

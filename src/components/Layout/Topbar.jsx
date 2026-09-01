@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
-import { ChevronDown, Clock, MapPin } from "lucide-react";
+import { ChevronDown, Clock, MapPin, Menu } from "lucide-react";
 import { useLocation } from "react-router-dom";
 
-export function Topbar() {
+export function Topbar({ onOpenSidebar }) {
   const [time, setTime] = useState(new Date());
   const location = useLocation();
 
@@ -40,11 +40,21 @@ export function Topbar() {
   };
 
   return (
-    <header className="h-16 bg-white rounded-[2rem] shadow-sm flex items-center justify-between px-6 shrink-0">
+    <header className="h-16 bg-white rounded-2xl md:rounded-[2rem] shadow-sm flex items-center justify-between px-4 sm:px-6 shrink-0">
       {/* Left Side: Logo & Breadcrumbs */}
-      <div className="flex items-center gap-6">
+      <div className="flex items-center gap-2 sm:gap-6">
+        {/* Mobile Hamburger */}
+        {onOpenSidebar && (
+          <button 
+            onClick={onOpenSidebar}
+            className="md:hidden p-2 text-gray-600 hover:bg-gray-100 rounded-full"
+          >
+            <Menu size={20} />
+          </button>
+        )}
+
         <div className="flex items-center">
-          <img src="/logofr.png" alt="FR Logo" className="h-8 w-auto mr-3" />
+          <img src="/logofr.png" alt="FR Logo" className="h-8 w-auto mr-2 sm:mr-3" />
           <span className="font-bold text-gray-800 text-lg tracking-tight">FR Academy</span>
         </div>
         

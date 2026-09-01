@@ -111,7 +111,7 @@ export default function DatabaseData() {
             Menampilkan seluruh {data.length} data karyawan dari database mentah.
           </p>
         </div>
-        <div className="flex flex-wrap items-center gap-3">
+        <div className="flex flex-col sm:flex-row flex-wrap items-stretch sm:items-center gap-3 w-full md:w-auto">
           {/* Angkatan Filter */}
           <select
             value={angkatanFilter}
@@ -119,7 +119,7 @@ export default function DatabaseData() {
               setAngkatanFilter(e.target.value);
               setCurrentPage(1);
             }}
-            className="px-4 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#2c8f42] outline-none transition-all cursor-pointer font-medium text-gray-600"
+            className="px-4 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#2c8f42] outline-none transition-all cursor-pointer font-medium text-gray-600 w-full sm:w-auto"
           >
             <option value="Semua">Semua Angkatan</option>
             {angkatanOptions.map((opt) => (
@@ -134,7 +134,7 @@ export default function DatabaseData() {
               setRegionFilter(e.target.value);
               setCurrentPage(1);
             }}
-            className="px-4 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#2c8f42] outline-none transition-all cursor-pointer font-medium text-gray-600"
+            className="px-4 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#2c8f42] outline-none transition-all cursor-pointer font-medium text-gray-600 w-full sm:w-auto"
           >
             <option value="Semua">Semua Region</option>
             {regionOptions.map((opt) => (
@@ -149,7 +149,7 @@ export default function DatabaseData() {
               setStatusFilter(e.target.value);
               setCurrentPage(1);
             }}
-            className="px-4 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#2c8f42] outline-none transition-all cursor-pointer font-medium text-gray-600"
+            className="px-4 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#2c8f42] outline-none transition-all cursor-pointer font-medium text-gray-600 w-full sm:w-auto"
           >
             <option value="Semua">Semua Status</option>
             {statusOptions.map((opt) => (
@@ -158,7 +158,7 @@ export default function DatabaseData() {
           </select>
 
           {/* Search */}
-          <div className="relative">
+          <div className="relative w-full sm:w-auto">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
             <input
               type="text"
@@ -168,14 +168,14 @@ export default function DatabaseData() {
                 setSearchTerm(e.target.value);
                 setCurrentPage(1);
               }}
-              className="pl-9 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#2c8f42] outline-none w-64 transition-all"
+              className="pl-9 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#2c8f42] outline-none w-full sm:w-64 transition-all"
             />
           </div>
 
           {/* Add Data Button */}
           <button
             onClick={handleAdd}
-            className="flex items-center gap-2 px-4 py-2 bg-[#2c8f42] text-white rounded-xl text-sm font-bold hover:bg-[#237535] transition-colors shadow-md shadow-[#2c8f42]/20 whitespace-nowrap"
+            className="flex items-center justify-center gap-2 px-4 py-2 bg-[#2c8f42] text-white rounded-xl text-sm font-bold hover:bg-[#237535] transition-colors shadow-md shadow-[#2c8f42]/20 whitespace-nowrap w-full sm:w-auto"
           >
             <Plus size={16} strokeWidth={3} />
             Tambah Data

@@ -1,7 +1,7 @@
 import { NavLink } from "react-router-dom";
-import { LayoutDashboard, Users, UserX, UserMinus, GraduationCap, Database } from "lucide-react";
+import { LayoutDashboard, Users, UserX, UserMinus, GraduationCap, Database, X } from "lucide-react";
 
-export function Sidebar() {
+export function Sidebar({ onClose }) {
   const mainNavItems = [
     { name: "Dashboard", path: "/", icon: LayoutDashboard, badge: null },
     { name: "Staf Aktif", path: "/eksis", icon: Users, badge: null },
@@ -10,8 +10,18 @@ export function Sidebar() {
   ];
 
   return (
-    <aside className="flex flex-col h-full w-full bg-white">
-      <nav className="flex-1 px-4 py-6 overflow-y-auto">
+    <aside className="flex flex-col h-full w-full bg-white relative">
+      {/* Mobile Close Button */}
+      {onClose && (
+        <button 
+          onClick={onClose}
+          className="md:hidden absolute top-4 right-4 p-2 text-gray-400 hover:text-gray-700 hover:bg-gray-100 rounded-full transition-colors z-10"
+        >
+          <X size={20} />
+        </button>
+      )}
+
+      <nav className="flex-1 px-4 py-8 md:py-6 overflow-y-auto">
         <div className="mb-8">
           <p className="px-4 text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-3">
             Menu Utama
