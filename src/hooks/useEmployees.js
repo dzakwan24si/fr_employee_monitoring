@@ -55,22 +55,10 @@ export function useEmployees(statusFilter = null) {
   const hasFetched = useRef(false);
 
   useEffect(() => {
-<<<<<<< HEAD
     if (!hasFetched.current) {
       fetchEmployees();
       hasFetched.current = true;
     }
-=======
-    fetchEmployees();
-
-    const interval = window.setInterval(() => {
-      fetchEmployees();
-    }, 10000);
-
-    return () => {
-      window.clearInterval(interval);
-    };
->>>>>>> f0c7e0a3e04ab5e6e97cf91cf0861e72226be8e2
   }, [filterKey]);
 
   const addEmployee = async (newEmployee) => {

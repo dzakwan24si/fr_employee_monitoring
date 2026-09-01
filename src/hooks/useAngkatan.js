@@ -52,22 +52,10 @@ export function useAngkatan() {
   const hasFetched = useRef(false);
 
   useEffect(() => {
-<<<<<<< HEAD
     if (!hasFetched.current) {
       fetchAngkatan();
       hasFetched.current = true;
     }
-=======
-    fetchAngkatan();
-
-    const interval = window.setInterval(() => {
-      fetchAngkatan();
-    }, 10000);
-
-    return () => {
-      window.clearInterval(interval);
-    };
->>>>>>> f0c7e0a3e04ab5e6e97cf91cf0861e72226be8e2
   }, []);
 
   const addAngkatan = async (newAngkatan) => {

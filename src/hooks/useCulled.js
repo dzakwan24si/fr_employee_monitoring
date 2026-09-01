@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { supabase } from '../lib/supabase';
 
 export function useCulled() {
@@ -37,16 +37,13 @@ export function useCulled() {
     }
   };
 
+  const hasFetched = useRef(false);
+
   useEffect(() => {
-    fetchCulled();
-
-    const interval = window.setInterval(() => {
+    if (!hasFetched.current) {
       fetchCulled();
-    }, 10000);
-
-    return () => {
-      window.clearInterval(interval);
-    };
+      hasFetched.current = true;
+    }
   }, []);
 
   const addCulled = async (newCulled) => {
