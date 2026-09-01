@@ -97,7 +97,7 @@ export default function DatabaseData() {
   };
 
   return (
-    <div className="h-full bg-white rounded-[2rem] shadow-sm flex flex-col border border-gray-100/50">
+    <div className="min-h-full h-auto bg-white rounded-[2rem] shadow-sm flex flex-col border border-gray-100/50">
       
       {/* Table Header & Controls */}
       <div className="p-6 md:p-8 border-b border-gray-100 flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -183,7 +183,7 @@ export default function DatabaseData() {
       </div>
 
       {/* Table Content */}
-      <div className="flex-1 overflow-auto">
+      <div className="flex-1 overflow-auto min-h-[400px]">
         <table className="w-full text-left border-collapse whitespace-nowrap">
           <thead>
             <tr className="bg-gray-50/80 text-gray-500 text-[11px] font-bold uppercase tracking-wider sticky top-0 z-10 backdrop-blur-sm">

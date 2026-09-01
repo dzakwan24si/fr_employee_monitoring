@@ -62,7 +62,7 @@ export function EmployeeTable({
   };
 
   return (
-    <div className="bg-white rounded-[2rem] shadow-sm flex flex-col h-full border border-gray-100/50">
+    <div className="bg-white rounded-[2rem] shadow-sm flex flex-col min-h-full h-auto border border-gray-100/50">
       
       {/* Table Header & Controls */}
       <div className="p-6 md:p-8 border-b border-gray-100 flex flex-col md:flex-row md:items-center justify-between gap-4">
