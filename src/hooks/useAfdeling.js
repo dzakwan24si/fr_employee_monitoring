@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { supabase } from '../lib/supabase';
 
 const normalizeReg = (value = "") => {
@@ -33,8 +33,13 @@ export function useAfdeling() {
     }
   };
 
+  const hasFetched = useRef(false);
+
   useEffect(() => {
-    fetchAfdeling();
+    if (!hasFetched.current) {
+      fetchAfdeling();
+      hasFetched.current = true;
+    }
   }, []);
 
   const updateAfdeling = async (regionMap) => {

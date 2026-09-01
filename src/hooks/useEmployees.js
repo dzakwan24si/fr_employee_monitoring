@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { supabase } from '../lib/supabase';
 
 export function useEmployees(statusFilter = null) {
@@ -52,9 +52,13 @@ export function useEmployees(statusFilter = null) {
   };
 
   const filterKey = JSON.stringify(statusFilter);
+  const hasFetched = useRef(false);
 
   useEffect(() => {
-    fetchEmployees();
+    if (!hasFetched.current) {
+      fetchEmployees();
+      hasFetched.current = true;
+    }
   }, [filterKey]);
 
   const addEmployee = async (newEmployee) => {

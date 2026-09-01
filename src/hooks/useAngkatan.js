@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { supabase } from '../lib/supabase';
 
 export function useAngkatan() {
@@ -57,8 +57,13 @@ export function useAngkatan() {
     }
   };
 
+  const hasFetched = useRef(false);
+
   useEffect(() => {
-    fetchAngkatan();
+    if (!hasFetched.current) {
+      fetchAngkatan();
+      hasFetched.current = true;
+    }
   }, []);
 
   const addAngkatan = async (newAngkatan) => {
