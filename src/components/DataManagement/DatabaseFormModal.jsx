@@ -1,6 +1,22 @@
 import { useState, useEffect } from "react";
 import { X, Save, User, Briefcase, MapPin, XCircle } from "lucide-react";
 
+
+const InputField = ({ label, name, type = 'text', placeholder, readOnly = false, formData, handleChange }) => (
+  <div className="flex flex-col gap-1.5">
+    <label className="text-xs font-bold text-gray-700">{label}</label>
+    <input
+      type={type}
+      name={name}
+      value={formData[name] || ''}
+      onChange={handleChange}
+      readOnly={readOnly}
+      placeholder={placeholder || `Masukkan ${label}`}
+      className={`px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#2c8f42] outline-none transition-all ${readOnly ? 'bg-gray-100 text-gray-500 cursor-not-allowed' : 'bg-gray-50'}`}
+    />
+  </div>
+);
+
 export function DatabaseFormModal({ isOpen, onClose, onSubmit, initialData }) {
   const [formData, setFormData] = useState({
     NIK: "",
@@ -92,6 +108,42 @@ export function DatabaseFormModal({ isOpen, onClose, onSubmit, initialData }) {
     }
   }, [formData["DATE TERMINATE"]]);
 
+  // Auto-calculate Lama Bekerja (Tahun & Bulan) from Join Date and Date Terminate
+  useEffect(() => {
+    const joinDateStr = formData["JOIN DATE"];
+    const terminateDateStr = formData["DATE TERMINATE"];
+    
+    if (joinDateStr && terminateDateStr) {
+      const joinDate = new Date(joinDateStr);
+      const terminateDate = new Date(terminateDateStr);
+      
+      if (!isNaN(joinDate.getTime()) && !isNaN(terminateDate.getTime()) && terminateDate >= joinDate) {
+        let years = terminateDate.getFullYear() - joinDate.getFullYear();
+        let months = terminateDate.getMonth() - joinDate.getMonth();
+        
+        if (terminateDate.getDate() < joinDate.getDate()) {
+          months--;
+        }
+        
+        if (months < 0) {
+          years--;
+          months += 12;
+        }
+        
+        setFormData(prev => {
+          if (prev["LAMA BEKERJA (TAHUN)"] !== years || prev["LAMA BEKERJA (BULAN)"] !== months) {
+            return {
+              ...prev,
+              "LAMA BEKERJA (TAHUN)": years,
+              "LAMA BEKERJA (BULAN)": months
+            };
+          }
+          return prev;
+        });
+      }
+    }
+  }, [formData["JOIN DATE"], formData["DATE TERMINATE"]]);
+
   // Auto-generate Lama Bekerja (Teks)
   useEffect(() => {
     const t = Number(formData["LAMA BEKERJA (TAHUN)"]);
@@ -146,20 +198,6 @@ export function DatabaseFormModal({ isOpen, onClose, onSubmit, initialData }) {
     }
   };
 
-  const InputField = ({ label, name, type = "text", placeholder, readOnly = false }) => (
-    <div className="flex flex-col gap-1.5">
-      <label className="text-xs font-bold text-gray-700">{label}</label>
-      <input
-        type={type}
-        name={name}
-        value={formData[name] || ""}
-        onChange={handleChange}
-        readOnly={readOnly}
-        placeholder={placeholder || `Masukkan ${label}`}
-        className={`px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#2c8f42] outline-none transition-all ${readOnly ? "bg-gray-100 text-gray-500 cursor-not-allowed" : "bg-gray-50"}`}
-      />
-    </div>
-  );
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
@@ -199,10 +237,10 @@ export function DatabaseFormModal({ isOpen, onClose, onSubmit, initialData }) {
                 <h3 className="font-bold">Data Pribadi</h3>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <InputField label="NIK / NRP" name="NIK" />
-                <InputField label="Nama Lengkap" name="NAMA" />
-                <InputField label="Suku" name="SUKU" />
-                <InputField label="Agama" name="AGAMA" />
+                <InputField formData={formData} handleChange={handleChange} label="NIK / NRP" name="NIK" />
+                <InputField formData={formData} handleChange={handleChange} label="Nama Lengkap" name="NAMA" />
+                <InputField formData={formData} handleChange={handleChange} label="Suku" name="SUKU" />
+                <InputField formData={formData} handleChange={handleChange} label="Agama" name="AGAMA" />
               </div>
             </div>
 
@@ -213,9 +251,9 @@ export function DatabaseFormModal({ isOpen, onClose, onSubmit, initialData }) {
                 <h3 className="font-bold">Status & Pekerjaan</h3>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <InputField label="Join Date" name="JOIN DATE" type="date" />
-                <InputField label="Jabatan" name="JABATAN" />
-                <InputField label="Level Jabatan" name="LEVEL JABATAN" />
+                <InputField formData={formData} handleChange={handleChange} label="Join Date" name="JOIN DATE" type="date" />
+                <InputField formData={formData} handleChange={handleChange} label="Jabatan" name="JABATAN" />
+                <InputField formData={formData} handleChange={handleChange} label="Level Jabatan" name="LEVEL JABATAN" />
                 
                 <div className="flex flex-col gap-1.5">
                   <label className="text-xs font-bold text-gray-700">Status</label>
@@ -226,11 +264,7 @@ export function DatabaseFormModal({ isOpen, onClose, onSubmit, initialData }) {
                     className="px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#2c8f42] outline-none transition-all font-medium"
                   >
                     <option value="Aktif">Aktif</option>
-                    <option value="Eksis">Eksis</option>
                     <option value="Resign">Resign</option>
-                    <option value="Terminate">Terminate</option>
-                    <option value="Culled">Culled</option>
-                    <option value="Tidak Lulus">Tidak Lulus</option>
                   </select>
                 </div>
                 
@@ -248,8 +282,8 @@ export function DatabaseFormModal({ isOpen, onClose, onSubmit, initialData }) {
                   </select>
                 </div>
 
-                <InputField label="Angkatan FR Academy" name="ANGKATAN FR ACADEMY" placeholder="Misal: FAT I 2026" />
-                <InputField label="Keterangan Alumni" name="ALUMNI" placeholder="Misal: Ya / Tidak" />
+                <InputField formData={formData} handleChange={handleChange} label="Angkatan FR Academy" name="ANGKATAN FR ACADEMY" placeholder="Misal: FAT I 2026" />
+                <InputField formData={formData} handleChange={handleChange} label="Keterangan Alumni" name="ALUMNI" placeholder="Misal: Ya / Tidak" />
               </div>
             </div>
 
@@ -260,43 +294,45 @@ export function DatabaseFormModal({ isOpen, onClose, onSubmit, initialData }) {
                 <h3 className="font-bold">Penempatan</h3>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <InputField label="Lokasi Awal Penempatan" name="LOKASI AWAL PENEMPATAN" />
-                <InputField label="Region Awal Penempatan" name="REGION AWAL PENEMPATAN" />
-                <InputField label="Lokasi Terakhir" name="LOKASI TERAKHIR" />
-                <InputField label="Region Terakhir" name="REGION TERAKHIR" />
-                <InputField label="Nama GM" name="GM" />
-                <InputField label="Nama MK" name="MK" />
+                <InputField formData={formData} handleChange={handleChange} label="Lokasi Awal Penempatan" name="LOKASI AWAL PENEMPATAN" />
+                <InputField formData={formData} handleChange={handleChange} label="Region Awal Penempatan" name="REGION AWAL PENEMPATAN" />
+                <InputField formData={formData} handleChange={handleChange} label="Lokasi Terakhir" name="LOKASI TERAKHIR" />
+                <InputField formData={formData} handleChange={handleChange} label="Region Terakhir" name="REGION TERAKHIR" />
+                <InputField formData={formData} handleChange={handleChange} label="Nama GM" name="GM" />
+                <InputField formData={formData} handleChange={handleChange} label="Nama MK" name="MK" />
               </div>
             </div>
 
             {/* Section 4: Data Keluar (Resign/Terminate) */}
-            <div className="flex flex-col gap-4 p-5 bg-red-50/50 rounded-2xl border border-red-100">
-              <div className="flex items-center gap-2 text-red-500 border-b border-red-200/50 pb-2">
-                <XCircle size={18} strokeWidth={2.5} />
-                <h3 className="font-bold">Data Terminate / Resign (Jika Ada)</h3>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <InputField label="Date Terminate" name="DATE TERMINATE" type="date" />
-                <InputField label="Bulan Terminate" name="BULAN TERMINATE" placeholder="Otomatis..." readOnly={true} />
-                <InputField label="Tahun Terminate" name="TAHUN TERMINATE" placeholder="Otomatis..." readOnly={true} />
-                <InputField label="Lama Bekerja (Bulan Angka)" name="LAMA BEKERJA (BULAN)" type="number" />
-                <InputField label="Lama Bekerja (Tahun Angka)" name="LAMA BEKERJA (TAHUN)" type="number" />
-                <InputField label="Lama Bekerja (Teks)" name="LAMA BEKERJA" placeholder="Otomatis terisi..." readOnly={true} />
-              </div>
-              <div className="grid grid-cols-1 gap-4 mt-2">
-                <InputField label="Alasan Resign" name="Alasan Resign" />
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-xs font-bold text-gray-700">Detail Alasan</label>
-                  <textarea
-                    name="Detail"
-                    value={formData.Detail || ""}
-                    onChange={handleChange}
-                    placeholder="Masukkan detail..."
-                    className="px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#2c8f42] outline-none transition-all resize-none h-24"
-                  />
+            {formData.STATUS === "Resign" && (
+              <div className="flex flex-col gap-4 p-5 bg-red-50/50 rounded-2xl border border-red-100">
+                <div className="flex items-center gap-2 text-red-500 border-b border-red-200/50 pb-2">
+                  <XCircle size={18} strokeWidth={2.5} />
+                  <h3 className="font-bold">Data Terminate / Resign (Jika Ada)</h3>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <InputField formData={formData} handleChange={handleChange} label="Date Terminate" name="DATE TERMINATE" type="date" />
+                  <InputField formData={formData} handleChange={handleChange} label="Bulan Terminate" name="BULAN TERMINATE" placeholder="Otomatis..." readOnly={true} />
+                  <InputField formData={formData} handleChange={handleChange} label="Tahun Terminate" name="TAHUN TERMINATE" placeholder="Otomatis..." readOnly={true} />
+                  <InputField formData={formData} handleChange={handleChange} label="Lama Bekerja (Bulan Angka)" name="LAMA BEKERJA (BULAN)" type="number" placeholder="Otomatis..." readOnly={true} />
+                  <InputField formData={formData} handleChange={handleChange} label="Lama Bekerja (Tahun Angka)" name="LAMA BEKERJA (TAHUN)" type="number" placeholder="Otomatis..." readOnly={true} />
+                  <InputField formData={formData} handleChange={handleChange} label="Lama Bekerja (Teks)" name="LAMA BEKERJA" placeholder="Otomatis terisi..." readOnly={true} />
+                </div>
+                <div className="grid grid-cols-1 gap-4 mt-2">
+                  <InputField formData={formData} handleChange={handleChange} label="Alasan Resign" name="Alasan Resign" />
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-xs font-bold text-gray-700">Detail Alasan</label>
+                    <textarea
+                      name="Detail"
+                      value={formData.Detail || ""}
+                      onChange={handleChange}
+                      placeholder="Masukkan detail..."
+                      className="px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#2c8f42] outline-none transition-all resize-none h-24"
+                    />
+                  </div>
                 </div>
               </div>
-            </div>
+            )}
 
           </form>
         </div>
